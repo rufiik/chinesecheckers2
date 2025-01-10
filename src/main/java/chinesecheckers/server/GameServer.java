@@ -19,15 +19,17 @@ public class GameServer implements Observable{
     private int nextPlayerId = 1;
     private final Board board;
     private boolean gameStarted = false;
+    private final ServerGUI gui;
     
-    private GameServer(int port) {
+    private GameServer(int port, ServerGUI gui) {
         this.port = port;
+        this.gui = gui;
         this.board = new Board();
     }
 
-    public static synchronized GameServer getInstance(int port) {
+    public static synchronized GameServer getInstance(int port, ServerGUI gui) {
         if (instance == null) {
-            instance = new GameServer(port);
+            instance = new GameServer(port, gui);
         }
         return instance;
     }
@@ -45,7 +47,6 @@ public class GameServer implements Observable{
     }
     
     private void initializeGame(ServerSocket serverSocket) throws IOException {
-        StartGUI gui = new StartGUI();
         maxPlayers = gui.getSelectedPlayers();
         System.out.println("Wybrano liczbę graczy: " + maxPlayers);
         
@@ -69,7 +70,6 @@ public class GameServer implements Observable{
         System.out.println("Wszyscy gracze dołączyli. Losowanie kolejności...");
         Collections.shuffle(playerOrder);
         board.initializeBoardForPlayers(maxPlayers);
-        new BoardGUI(board); 
         for (ClientHandler player : players) {
             player.sendMessage("Kolejność gry: " + playerOrder.toString());
         }
@@ -87,6 +87,7 @@ public class GameServer implements Observable{
             }
         }
     }
+
     private void startGame(ServerSocket serverSocket) throws IOException {
         while ((standings.size() + disconnectedPlayers.size()) < maxPlayers) {
             processTurn();
@@ -94,6 +95,7 @@ public class GameServer implements Observable{
         System.out.println("Gra zakończona!");
         cleanupDisconnectedPlayers();
         displayStandings();
+        gui.waitForWindowClose();
         System.exit(0);
     }
 
@@ -240,7 +242,8 @@ public class GameServer implements Observable{
     }
 
     public static void main(String[] args) {
-        GameServer server = new GameServer(12345);
+        ServerGUI gui = new ServerGUI();
+        GameServer server = new GameServer(12345, gui);
         server.start();
     }
 }
