@@ -49,7 +49,7 @@ public class GameServer implements Observable{
     private void initializeGame(ServerSocket serverSocket) throws IOException {
         maxPlayers = gui.getSelectedPlayers();
         System.out.println("Wybrano liczbę graczy: " + maxPlayers);
-        
+        board.initializeBoardForPlayers(maxPlayers);
         System.out.println("Oczekiwanie na graczy..."); 
         new Thread(() -> handleNewConnections(serverSocket)).start();
         synchronized (players) {
@@ -73,7 +73,7 @@ public class GameServer implements Observable{
         for (ClientHandler player : players) {
             player.sendMessage("Kolejność gry: " + playerOrder.toString());
         }
-    
+        broadcastGameState();
         gameStarted = true;
     }
 
@@ -240,7 +240,15 @@ public class GameServer implements Observable{
             }
         }
     }
-
+    public synchronized void broadcastGameState() {
+        for (ClientHandler client : players) {
+            client.sendGameState(board);
+        }
+    }
+    public synchronized void updateGameState(String move) {
+        board.update(move);
+        broadcastGameState();
+    }
     public static void main(String[] args) {
         ServerGUI gui = new ServerGUI();
         GameServer server = new GameServer(12345, gui);

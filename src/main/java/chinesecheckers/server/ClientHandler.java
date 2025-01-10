@@ -26,6 +26,10 @@ public class ClientHandler implements Observer {
     public void sendMessage(String message) {
             out.println(message);
     }
+    
+    public void sendGameState(Board board) {
+        out.println("Stan planszy:" + board.toString());
+    }
 
     public String receiveMessage() {
         try {

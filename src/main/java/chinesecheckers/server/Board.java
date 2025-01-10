@@ -126,7 +126,29 @@ public class Board {
             return "Nieprawidłowy ruch: " + move;
         }
     }
-
+    
+    public void update(String gameState) {
+        String[] rows = gameState.split(";");
+        for (int i = 0; i < rows.length; i++) {
+            String[] cells = rows[i].split(",");
+            for (int j = 0; j < cells.length; j++) {
+                board[i][j] = Integer.parseInt(cells[j]);
+            }
+        }
+    }
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int[] row : board) {
+            for (int cell : row) {
+                sb.append(cell).append(",");
+            }
+            sb.deleteCharAt(sb.length() - 1); 
+            sb.append(";");
+        }
+        sb.deleteCharAt(sb.length() - 1); 
+        return sb.toString();
+    }
     private boolean isValidMove(String move) {
         return true;
     }

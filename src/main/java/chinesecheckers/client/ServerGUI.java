@@ -1,20 +1,35 @@
-package chinesecheckers.server;
+package chinesecheckers.client;
 import javax.swing.*;
+
+import chinesecheckers.server.Board;
+
 import java.awt.*;
 
-public class BoardGUI extends JFrame {
+public class ServerGUI extends JFrame {
     private Board board;
-
-    public BoardGUI(Board board) {
+    private JLabel turnLabel;
+    public ServerGUI(Board board) {
         this.board = board;
         setTitle("Chinese Checkers");
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        add(new BoardPanel());
+            // Inicjalizacja JLabel
+            turnLabel = new JLabel("Oczekiwanie na turę...");
+            turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            turnLabel.setFont(new Font("Serif", Font.BOLD, 20));
+            
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.add(turnLabel, BorderLayout.NORTH);
+            mainPanel.add(new BoardPanel(), BorderLayout.CENTER);
+            
+            add(mainPanel);
         setVisible(true);
+        
     }
-
+    public void showPlayerTurnMessage() {
+        turnLabel.setText("Twoja tura!");
+    }
     private class BoardPanel extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
