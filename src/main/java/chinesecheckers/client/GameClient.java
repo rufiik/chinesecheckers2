@@ -1,8 +1,8 @@
 package chinesecheckers.client;
-
 import java.io.*;
 import java.net.*;
 import javax.swing.SwingUtilities;
+
 import chinesecheckers.server.Board;
 
 public class GameClient {
@@ -10,8 +10,10 @@ public class GameClient {
     private final int port;
     private boolean isPlayerTurn = false;
     private boolean isConnected = true;
-    private ServerGUI boardGUI;
+    private ClientGUI clientGUI;
     private Board board;
+    private int playerColor;
+    private PrintWriter out;
 
     public GameClient(String host, int port) {
         this.host = host;
@@ -20,14 +22,23 @@ public class GameClient {
 
     public void start() {
         try (Socket socket = new Socket(host, port);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+            out = new PrintWriter(socket.getOutputStream(), true);
 
             System.out.println("Połączono z serwerem!");
 
             board = new Board();
+            String idMessage;
+            while ((idMessage = in.readLine()) != null) {
+                if (idMessage.startsWith("PLAYER_ID:")) {
+                    int playerId = Integer.parseInt(idMessage.split(":")[1]);
+                    playerColor = playerId;
+                    break;
+                }
+            }
+
             SwingUtilities.invokeLater(() -> {
-                boardGUI = new ServerGUI(board);
+                clientGUI = new ClientGUI(board, playerColor, this);
             });
 
             new Thread(() -> {
@@ -42,7 +53,7 @@ public class GameClient {
                             } else if (serverMessage.startsWith("Twoja tura!")) {
                                 isPlayerTurn = true;
                                 SwingUtilities.invokeLater(() -> {
-                                    boardGUI.showPlayerTurnMessage();
+                                    clientGUI.showPlayerTurnMessage();
                                 });
                             } else if (serverMessage.equals("Gra już się rozpoczęła.")) {
                                 closeConnection();
@@ -51,7 +62,7 @@ public class GameClient {
                                 String gameState = serverMessage.substring("Stan planszy:".length()).trim();
                                 board.update(gameState);
                                 SwingUtilities.invokeLater(() -> {
-                                    boardGUI.repaint();
+                                    clientGUI.repaint();
                                 });
                             } else {
                                 System.out.println(serverMessage);
@@ -68,7 +79,6 @@ public class GameClient {
 
             while (isConnected) {
                 if (isPlayerTurn) {
-
                     isPlayerTurn = false;
                 }
             }
@@ -86,6 +96,13 @@ public class GameClient {
     public void closeConnection() {
         isConnected = false;
         System.out.println("Gra już się rozpoczęła.");
+    }
+
+    public void sendMove(int startX, int startY, int endX, int endY) {
+        out.println("Ruch-" + startX + "," + startY + ":" + endX + "," + endY);
+        SwingUtilities.invokeLater(() -> {
+            clientGUI.endPlayerTurn();
+        });
     }
 
     public static void main(String[] args) {

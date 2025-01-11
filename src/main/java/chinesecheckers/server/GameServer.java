@@ -134,15 +134,32 @@ public class GameServer implements Observable{
         } else if (move.equalsIgnoreCase("WYGRANA")) {
             standings.add(playerId);
             broadcastMessage("Gracz " + playerId + " zajął miejsce " + standings.size() + "!");
-        } else {
-            String result = board.processMove(move, playerId);
-            currentPlayer.sendMessage(result);
+        } else if (move != null && move.startsWith("Ruch-")) {
+            String[] parts = move.substring(5).split(":");
+            if (parts.length == 2) {
+                String[] startCoords = parts[0].split(",");
+                String[] endCoords = parts[1].split(",");
+                if (startCoords.length == 2 && endCoords.length == 2) {
+                    try {
+                        int startX = Integer.parseInt(startCoords[0]);
+                        int startY = Integer.parseInt(startCoords[1]);
+                        int endX = Integer.parseInt(endCoords[0]);
+                        int endY = Integer.parseInt(endCoords[1]);
     
-            if (result.startsWith("Ruch wykonany")) {
-                System.out.println("Gracz " + playerId + " wykonał ruch: " + move);
-                broadcastMessage("Gracz " + playerId + " wykonał ruch: " + move, playerId);
-            } else {
-                currentPlayer.sendMessage("Spróbuj ponownie.");
+                        String result = board.movePiece(startX, startY, endX, endY, playerId);
+                        currentPlayer.sendMessage(result);
+    
+                        if (result.startsWith("Ruch wykonany")) {
+                            System.out.println("Gracz " + playerId + " wykonał ruch: " + move);
+                            broadcastMessage("Gracz " + playerId + " wykonał ruch: " + move, playerId);
+                            broadcastGameState();
+                        } else {
+                            currentPlayer.sendMessage("Nieprawidłowy ruch. Spróbuj ponownie.");
+                        }
+                    } catch (NumberFormatException e) {
+                        currentPlayer.sendMessage("Nieprawidłowe współrzędne. Spróbuj ponownie.");
+                    }
+                }
             }
         }
 

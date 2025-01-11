@@ -16,6 +16,7 @@ public class ClientHandler implements Observer {
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.playerId = playerId;
         sendMessage("Witaj, Graczu " + playerId + "!");
+        sendMessage("PLAYER_ID:" + playerId);
     }
 
     @Override
