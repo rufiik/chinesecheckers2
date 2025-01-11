@@ -162,6 +162,11 @@ public class GameServer implements Observable{
                 }
             }
         }
+        else if(move.startsWith("SKIP TURN")) {
+            System.out.println("Gracz " + playerId + " zrezygnował z ruchu.");
+            broadcastMessage("Gracz " + playerId + " zrezygnował z ruchu.");
+
+        }
 
         currentPlayerIndex = (currentPlayerIndex + 1) % maxPlayers;
 

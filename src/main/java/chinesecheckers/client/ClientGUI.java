@@ -1,6 +1,8 @@
 package chinesecheckers.client;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import chinesecheckers.server.Board;
 
@@ -11,7 +13,7 @@ public class ClientGUI extends JFrame {
     private int playerColor;
     private BoardPanel boardPanel;
     private GameClient gameClient;
-
+    private JButton skipButton;
     public ClientGUI(Board board, int playerColor, GameClient gameClient) {
         this.board = board;
         this.playerColor = playerColor;
@@ -32,8 +34,20 @@ public class ClientGUI extends JFrame {
         colorLabel.setFont(new Font("Serif", Font.BOLD, 20));
         colorLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
         
+
+        skipButton = new JButton("Skip Turn");
+        skipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                skipTurn();
+            }
+        });
+
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        topPanel.add(turnLabel);
+        topPanel.add(skipButton);
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add(turnLabel, BorderLayout.NORTH);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(colorLabel, BorderLayout.SOUTH);
         boardPanel = new BoardPanel(board, playerColor, gameClient);
         mainPanel.add(boardPanel, BorderLayout.CENTER);
@@ -50,6 +64,10 @@ public class ClientGUI extends JFrame {
     public void endPlayerTurn() {
         turnLabel.setText("Oczekiwanie na turę...");
         boardPanel.setPlayerTurn(false);
+    }
+
+    private void skipTurn() {
+        gameClient.skipTurn();
     }
 
     private String getColorName(int playerColor) {
