@@ -1,5 +1,10 @@
 package chinesecheckers.server;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class Board {
     private int[][] board;
     private static final int ROWS = 17;
@@ -9,7 +14,6 @@ public class Board {
         board = new int[ROWS][COLUMNS];
         initializeBoard();
     }
-
     private void initializeBoard() {
         board = new int[][] {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7},
@@ -82,7 +86,89 @@ public class Board {
             return "Nieprawidłowy ruch z (" + startX + "," + startY + ") na (" + endX + "," + endY + ").";
         }
     }
-    
+
+    public boolean hasPiece(int x, int y) {
+        return board[x][y] != 0 && board[x][y] != 7;
+    }
+    public boolean isEmpty(int x, int y) {
+        return board[x][y] == 0;
+    }
+    public List<int[]> getPossibleJumps(int startX, int startY, int playerId) {
+    List<int[]> jumps = new ArrayList<>();
+    int[][] directions = {
+        {-2, 0}, {2, 0}, {0, -2}, {0, 2}, {-2, -2}, {2, 2}, {-2, 2}, {2, -2}
+    };
+
+    for (int[] dir : directions) {
+        int midX = startX + dir[0] / 2;
+        int midY = startY + dir[1] / 2;
+        int endX = startX + dir[0];
+        int endY = startY + dir[1];
+        if (isWithinBoard(endX, endY) && hasPiece(midX, midY) && isEmpty(endX, endY)) {
+            jumps.add(new int[]{endX, endY});
+        }
+    }
+
+    return jumps;
+}
+
+public boolean isValidMultiJump(int startX, int startY, int endX, int endY, int playerId) {
+    Set<String> visited = new HashSet<>();
+    boolean result = canJump(startX, startY, endX, endY, playerId, visited);
+    return result;
+}
+
+private boolean canJump(int startX, int startY, int endX, int endY, int playerId, Set<String> visited) {
+    if (startX == endX && startY == endY) {
+        return true;
+    }
+
+    visited.add(startX + "," + startY);
+
+    for (int[] jump : getPossibleJumps(startX, startY, playerId)) {
+        int nextX = jump[0];
+        int nextY = jump[1];
+        if (!visited.contains(nextX + "," + nextY) && canJump(nextX, nextY, endX, endY, playerId, visited)) {
+            return true;
+        }
+    }
+
+    visited.remove(startX + "," + startY);
+    return false;
+}
+
+    public boolean isValidMove(int startX, int startY, int endX, int endY, int playerId) {
+        if (!isWithinBoard(startX, startY) || !isWithinBoard(endX, endY)) {
+            return false;
+        }
+        if (!hasPiece(startX, startY)) {
+            return false;
+        }
+        if (!isEmpty(endX, endY)) {
+            return false;
+        }
+     if (isAdjacentMove(startX, startY, endX, endY) || isJumpMove(startX, startY, endX, endY) || isValidMultiJump(startX, startY, endX, endY, playerId)) {
+       return true;
+    }
+    return false;
+    }
+
+    private boolean isWithinBoard(int x, int y) {
+        return x >= 0 && x < ROWS && y >= 0 && y < COLUMNS && board[x][y] != 7;
+    }
+
+    private boolean isAdjacentMove(int startX, int startY, int endX, int endY) {
+        int dx = Math.abs(startX - endX);
+        int dy = Math.abs(startY - endY);
+        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 1 && dy == 1);
+    }
+
+    private boolean isJumpMove(int startX, int startY, int endX, int endY) {
+        int midX = (startX + endX) / 2;
+        int midY = (startY + endY) / 2;
+        return hasPiece(midX, midY) && isAdjacentMove(startX, startY, midX, midY) && isAdjacentMove(midX, midY, endX, endY);
+    }
+
     public void update(String gameState) {
         String[] rows = gameState.split(";");
         for (int i = 0; i < rows.length; i++) {
@@ -107,9 +193,7 @@ public class Board {
         return sb.toString();
     }
 
-    public boolean isValidMove(int startX, int startY, int endX, int endY, int playerId) {
-        return true;
-    }
+
 
     public int[][] getBoard() {
         return board;
