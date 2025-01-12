@@ -66,10 +66,11 @@ public class GameServer implements Observable{
         for (ClientHandler player : players) {
             playerOrder.add(player.getPlayerId());
         }
-     
+        
         System.out.println("Wszyscy gracze dołączyli. Losowanie kolejności...");
         Collections.shuffle(playerOrder);
         board.initializeBoardForPlayers(maxPlayers);
+        board.initializeOpponentBaseMapping(maxPlayers);
         for (ClientHandler player : players) {
             player.sendMessage("Kolejność gry: " + playerOrder.toString());
         }
@@ -245,7 +246,7 @@ public class GameServer implements Observable{
                             clientSocket.close();
                         }
                     } else {
-                        ClientHandler player = new ClientHandler(clientSocket, nextPlayerId++);
+                        ClientHandler player = new ClientHandler(clientSocket, nextPlayerId++,maxPlayers);
                         if (player.isConnected()) {
                             players.add(player);
                             addObserver(player);

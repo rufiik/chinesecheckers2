@@ -9,14 +9,17 @@ public class ClientHandler implements Observer {
     private final PrintWriter out;
     private final BufferedReader in;
     private final int playerId;
+    private final int maxPlayers;
 
-    public ClientHandler(Socket socket, int playerId) throws IOException {
+    public ClientHandler(Socket socket, int playerId, int maxPlayers) throws IOException {
         this.socket = socket;
         this.out = new PrintWriter(socket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.playerId = playerId;
+        this.maxPlayers = maxPlayers;
         sendMessage("Witaj, Graczu " + playerId + "!");
         sendMessage("PLAYER_ID:" + playerId);
+        sendMessage("Liczba graczy:" + maxPlayers);
     }
 
     @Override
@@ -68,8 +71,10 @@ public class ClientHandler implements Observer {
             e.printStackTrace();
         }
     }
-
     public int getPlayerId() {
         return playerId;
+    }
+    public int getMaxPlayers() {
+        return maxPlayers;
     }
 }

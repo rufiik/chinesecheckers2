@@ -1,6 +1,7 @@
 package chinesecheckers.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,10 +10,15 @@ public class Board {
     private int[][] board;
     private static final int ROWS = 17;
     private static final int COLUMNS = 25;
+    private List<Set<int[]>> playerBases;
+    private int[] opponentBaseMapping;
 
     public Board() {
         board = new int[ROWS][COLUMNS];
         initializeBoard();
+        initializePlayerBases();
+        
+        
     }
     private void initializeBoard() {
         board = new int[][] {
@@ -35,7 +41,43 @@ public class Board {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7}
         };
     }
+    private void initializePlayerBases() {
+        playerBases = new ArrayList<>(6);
+        for (int i = 0; i < 6; i++) {
+            playerBases.add(new HashSet<>());
+        }
 
+        addPlayerBase(0, new int[][]{{0, 12}, {1, 11}, {1, 13}, {2, 10}, {2, 12}, {2, 14}, {3, 9}, {3, 11}, {3, 13}, {3, 15}});
+        addPlayerBase(1, new int[][]{{16, 12}, {15, 11}, {15, 13}, {14, 10}, {14, 12}, {14, 14}, {13, 9}, {13, 11}, {13, 13}, {13, 15}});
+        addPlayerBase(2, new int[][]{{12, 0}, {11, 1}, {12, 2}, {10, 2}, {11, 3}, {12, 4}, {9, 3}, {10, 4}, {11, 5}, {12, 6}});
+        addPlayerBase(3, new int[][]{{12, 24}, {11, 23}, {12, 22}, {10, 22}, {9, 21}, {11, 21}, {10, 20}, {12, 20}, {11, 19}, {12, 18}});
+        addPlayerBase(4, new int[][]{{4, 0}, {5, 1}, {4, 2}, {6, 2}, {5, 3}, {4, 4}, {5, 5}, {6, 4}, {7, 3}, {4, 6}});
+        addPlayerBase(5, new int[][]{{4, 24}, {5, 23}, {4, 22}, {6, 22}, {5, 21}, {7, 21}, {4, 20}, {6, 20}, {4, 18}, {5, 19}});
+    }
+
+    public void initializeOpponentBaseMapping(int numberOfPlayers) {
+        switch(numberOfPlayers) {
+            case 2:
+                opponentBaseMapping = new int[]{1, 0};
+                break;
+            case 3:
+                opponentBaseMapping = new int[]{1, 4, 5};
+                break;
+            case 4:
+                opponentBaseMapping = new int[]{3, 2, 5, 4};
+                break;
+            case 6:
+                opponentBaseMapping = new int[]{1, 0, 5, 4, 3, 2};
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid number of players: " + numberOfPlayers);
+        }
+    }
+    private void addPlayerBase(int playerIndex, int[][] positions) {
+        for (int[] pos : positions) {
+            playerBases.get(playerIndex).add(pos);
+        }
+    }
     public void initializeBoardForPlayers(int numberOfPlayers) {
         switch (numberOfPlayers) {
             case 2:
@@ -75,6 +117,16 @@ public class Board {
         for (int[] pos : positions) {
             board[pos[0]][pos[1]] = player;
         }
+    }
+
+    private boolean isInOpponentBase(int x, int y, int playerId) {
+        int opponentBaseIndex = opponentBaseMapping[playerId - 1];
+        for (int[] base : playerBases.get(opponentBaseIndex)) {
+            if (base[0] == x && base[1] == y) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized String movePiece(int startX, int startY, int endX, int endY, int playerId) {
@@ -146,6 +198,11 @@ private boolean canJump(int startX, int startY, int endX, int endY, int playerId
         }
         if (!isEmpty(endX, endY)) {
             return false;
+        }
+        if (isInOpponentBase(startX, startY, playerId)) {
+            if (!isInOpponentBase(endX, endY, playerId)) {
+                return false; 
+            }
         }
      if (isAdjacentMove(startX, startY, endX, endY) || isJumpMove(startX, startY, endX, endY) || isValidMultiJump(startX, startY, endX, endY, playerId)) {
        return true;

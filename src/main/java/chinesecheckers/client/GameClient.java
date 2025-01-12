@@ -14,6 +14,8 @@ public class GameClient {
     private Board board;
     private int playerColor;
     private PrintWriter out;
+    private int maxPlayers;
+    
 
     public GameClient(String host, int port) {
         this.host = host;
@@ -26,17 +28,20 @@ public class GameClient {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             System.out.println("Połączono z serwerem!");
-
             board = new Board();
             String idMessage;
             while ((idMessage = in.readLine()) != null) {
                 if (idMessage.startsWith("PLAYER_ID:")) {
                     int playerId = Integer.parseInt(idMessage.split(":")[1]);
                     playerColor = playerId;
+             
+                }
+                else if (idMessage.startsWith("Liczba graczy:")) {
+                    maxPlayers = Integer.parseInt(idMessage.split(":")[1]);
                     break;
                 }
             }
-
+            board.initializeOpponentBaseMapping(maxPlayers);
             SwingUtilities.invokeLater(() -> {
                 clientGUI = new ClientGUI(board, playerColor, this);
             });
