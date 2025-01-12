@@ -69,6 +69,11 @@ public class GameClient {
                                 SwingUtilities.invokeLater(() -> {
                                     clientGUI.repaint();
                                 });
+                            } else if (serverMessage.startsWith("Gracz ") && serverMessage.contains(" zajął miejsce ")) {
+                                final String rankMessage = serverMessage;
+                                SwingUtilities.invokeLater(() -> {
+                                    clientGUI.updateStandings(rankMessage);
+                                });
                             } else {
                                 System.out.println(serverMessage);
                             }

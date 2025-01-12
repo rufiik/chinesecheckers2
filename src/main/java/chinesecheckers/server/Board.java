@@ -1,7 +1,6 @@
 package chinesecheckers.server;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +69,7 @@ public class Board {
                 opponentBaseMapping = new int[]{1, 0, 5, 4, 3, 2};
                 break;
             default:
-                throw new IllegalArgumentException("Invalid number of players: " + numberOfPlayers);
+                throw new IllegalArgumentException("Nieprawidłowa ilość graczy: " + numberOfPlayers);
         }
     }
     private void addPlayerBase(int playerIndex, int[][] positions) {
@@ -234,6 +233,18 @@ private boolean canJump(int startX, int startY, int endX, int endY, int playerId
                 board[i][j] = Integer.parseInt(cells[j]);
             }
         }
+    }
+
+    public boolean isPlayerInOpponentBase(int playerId) {
+        int opponentBaseIndex = opponentBaseMapping[playerId - 1];
+        Set<int[]> opponentBase = playerBases.get(opponentBaseIndex);
+
+        for (int[] pos : opponentBase) {
+            if (board[pos[0]][pos[1]] != playerId) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

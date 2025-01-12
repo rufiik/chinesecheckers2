@@ -154,6 +154,11 @@ public class GameServer implements Observable{
                             System.out.println("Gracz " + playerId + " wykonał ruch: " + move);
                             broadcastMessage("Gracz " + playerId + " wykonał ruch: " + move, playerId);
                             broadcastGameState();
+
+                            if (board.isPlayerInOpponentBase(playerId) && !standings.contains(playerId)) {
+                                standings.add(playerId);
+                                broadcastMessage("Gracz " + playerId + " zajął miejsce " + standings.size() + "!");
+                            }
                         } else {
                             currentPlayer.sendMessage("Nieprawidłowy ruch. Spróbuj ponownie.");
                         }
@@ -162,8 +167,7 @@ public class GameServer implements Observable{
                     }
                 }
             }
-        }
-        else if(move.startsWith("SKIP TURN")) {
+        } else if(move.startsWith("SKIP TURN")) {
             System.out.println("Gracz " + playerId + " zrezygnował z ruchu.");
             broadcastMessage("Gracz " + playerId + " zrezygnował z ruchu.");
 
