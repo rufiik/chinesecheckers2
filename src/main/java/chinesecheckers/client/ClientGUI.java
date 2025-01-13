@@ -24,7 +24,9 @@ public class ClientGUI extends JFrame {
         this.playerColor = playerColor;
         this.gameClient = gameClient;
         this.standings = new ArrayList<>();
+    }
 
+    public void initialize() {
         setTitle("Chinese Checkers");
         setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,7 +44,7 @@ public class ClientGUI extends JFrame {
         
         standingsArea = new JTextArea();
         standingsArea.setEditable(false);
-        standingsArea.setFont(new Font("Serif", Font.PLAIN, 10));
+        standingsArea.setFont(new Font("Serif", Font.PLAIN, 16));
 
         skipButton = new JButton("Pomiń turę");
         skipButton.setEnabled(false);
@@ -85,6 +87,12 @@ public class ClientGUI extends JFrame {
         skipButton.setEnabled(false);
     }
 
+    public void endGame() {
+        turnLabel.setText("Koniec gry!");
+        boardPanel.setPlayerTurn(false);
+        skipButton.setEnabled(false);
+    }
+
     private void skipTurn() {
         gameClient.skipTurn();
     }
@@ -106,7 +114,7 @@ public class ClientGUI extends JFrame {
         int playerId = Integer.parseInt(rankParts[1]);
 
         standings.add(getColorName(playerId));
-        StringBuilder standingsText = new StringBuilder("Aktualny ranking:\n");
+        StringBuilder standingsText = new StringBuilder();
         for (String standing : standings) {
             standingsText.append(standing).append("\n");
         }

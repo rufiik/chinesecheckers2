@@ -3,6 +3,7 @@ import java.io.*;
 import java.net.*;
 import javax.swing.SwingUtilities;
 
+import chinesecheckers.patterns.GameFacade;
 import chinesecheckers.server.Board;
 
 public class GameClient {
@@ -10,7 +11,7 @@ public class GameClient {
     private final int port;
     private boolean isPlayerTurn = false;
     private boolean isConnected = true;
-    private ClientGUI clientGUI;
+    private GameFacade gameFacade;
     private Board board;
     private int playerColor;
     private PrintWriter out;
@@ -34,17 +35,15 @@ public class GameClient {
                 if (idMessage.startsWith("PLAYER_ID:")) {
                     int playerId = Integer.parseInt(idMessage.split(":")[1]);
                     playerColor = playerId;
-             
-                }
-                else if (idMessage.startsWith("Liczba graczy:")) {
+                } else if (idMessage.startsWith("Liczba graczy:")) {
                     maxPlayers = Integer.parseInt(idMessage.split(":")[1]);
                     break;
                 }
             }
-            board.initializeOpponentBaseMapping(maxPlayers);
-            SwingUtilities.invokeLater(() -> {
-                clientGUI = new ClientGUI(board, playerColor, this);
-            });
+
+            ClientGUI clientGUI = new ClientGUI(board, playerColor, this);
+            gameFacade = new GameFacade(board, clientGUI, this);
+            gameFacade.initializeGame(maxPlayers);
 
             new Thread(() -> {
                 try {
@@ -58,22 +57,23 @@ public class GameClient {
                             } else if (serverMessage.startsWith("Twoja tura!")) {
                                 isPlayerTurn = true;
                                 SwingUtilities.invokeLater(() -> {
-                                    clientGUI.showPlayerTurnMessage();
+                                    gameFacade.showPlayerTurnMessage();
                                 });
                             } else if (serverMessage.equals("Gra już się rozpoczęła.")) {
                                 closeConnection();
                                 break;
                             } else if (serverMessage.startsWith("Stan planszy:")) {
                                 String gameState = serverMessage.substring("Stan planszy:".length()).trim();
-                                board.update(gameState);
                                 SwingUtilities.invokeLater(() -> {
-                                    clientGUI.repaint();
+                                    gameFacade.updateGameState(gameState);
                                 });
                             } else if (serverMessage.startsWith("Gracz ") && serverMessage.contains(" zajął miejsce ")) {
                                 final String rankMessage = serverMessage;
                                 SwingUtilities.invokeLater(() -> {
-                                    clientGUI.updateStandings(rankMessage);
+                                    gameFacade.updateStandings(rankMessage);
                                 });
+                            } else if (serverMessage.startsWith("Gra zakończona!")) {
+                                clientGUI.endGame();
                             } else {
                                 System.out.println(serverMessage);
                             }
@@ -111,13 +111,14 @@ public class GameClient {
     public void sendMove(int startX, int startY, int endX, int endY) {
         out.println("Ruch-" + startX + "," + startY + ":" + endX + "," + endY);
         SwingUtilities.invokeLater(() -> {
-            clientGUI.endPlayerTurn();
+            gameFacade.endPlayerTurn();
         });
     }
+
     public void skipTurn() {
         out.println("SKIP TURN");
         SwingUtilities.invokeLater(() -> {
-            clientGUI.endPlayerTurn();
+            gameFacade.endPlayerTurn();
         });
     }
 

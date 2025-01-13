@@ -177,7 +177,7 @@ public class GameServer implements Observable{
 
         if ((standings.size() + disconnectedPlayers.size()) == maxPlayers - 1) {
             for (int id : playerOrder) {
-                if (!standings.contains(id)) {
+                if (!standings.contains(id) && !disconnectedPlayers.contains(id)) {
                     standings.add(id);
                     broadcastMessage("Gracz " + id + " zajął miejsce " + standings.size() + "!");
                     break;
