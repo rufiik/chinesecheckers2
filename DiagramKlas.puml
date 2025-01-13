@@ -1,0 +1,167 @@
+@startuml DiagramKlas
+
+package chinesecheckers.client {
+    class GameClient {
+        - String host
+        - int port
+        - boolean isPlayerTurn
+        - boolean isConnected
+        - ClientGUI clientGUI
+        - Board board
+        - int playerColor
+        - PrintWriter out
+        - int maxPlayers
+        + GameClient(String host, int port)
+        + void start()
+        + void stopConnection()
+        + void closeConnection()
+        + void sendMove(int startX, int startY, int endX, int endY)
+        + void skipTurn()
+    }
+
+    class ClientGUI {
+        - Board board
+        - JLabel turnLabel
+        - JLabel colorLabel
+        - int playerColor
+        - BoardPanel boardPanel
+        - GameClient gameClient
+        - JButton skipButton
+        - JTextArea standingsArea
+        - List<String> standings
+        + ClientGUI(Board board, int playerColor, GameClient gameClient)
+        + void showPlayerTurnMessage()
+        + void endPlayerTurn()
+        + void updateStandings(String rankMessage)
+    }
+
+    class BoardPanel {
+        - Board board
+        - int playerColor
+        - boolean isPlayerTurn
+        - GameClient gameClient
+        - int cellSize
+        - int boardWidth
+        - int boardHeight
+        - int startX
+        - int startY
+        - int selectedRow
+        - int selectedCol
+        - int draggedX
+        - int draggedY
+        - boolean dragging
+        + BoardPanel(Board board, int playerColor, GameClient gameClient)
+        + void setPlayerTurn(boolean isPlayerTurn)
+    }
+}
+
+package chinesecheckers.server {
+    class GameServer {
+        - static GameServer instance
+        - int port
+        - List<ClientHandler> players
+        - List<Integer> playerOrder
+        - Set<Integer> disconnectedPlayers
+        - List<Integer> standings
+        - List<Observer> observers
+        - int currentPlayerIndex
+        - int maxPlayers
+        - int nextPlayerId
+        - Board board
+        - boolean running
+        - boolean gameStarted
+        - ServerGUI gui
+        + static synchronized GameServer getInstance(int port, ServerGUI gui)
+        + void start()
+        + void startWithMockSocket(ServerSocket mockServerSocket)
+        + void broadcastMessage(String message)
+        + synchronized void broadcastGameState()
+        + synchronized void updateGameState(String move)
+    }
+
+    class ClientHandler {
+        - Socket socket
+        - PrintWriter out
+        - BufferedReader in
+        - int playerId
+        - int maxPlayers
+        + ClientHandler(Socket socket, int playerId, int maxPlayers)
+        + void update(String message)
+        + void sendMessage(String message)
+        + void sendGameState(Board board)
+        + String receiveMessage()
+        + boolean isConnected()
+        + void close()
+        + int getPlayerId()
+        + int getMaxPlayers()
+        + PrintWriter getOut()
+        + void setOut(PrintWriter out)
+        + BufferedReader getIn()
+        + void setIn(BufferedReader in)
+    }
+
+    class ServerGUI {
+        - int selectedPlayers
+        - JFrame frame
+        - JTextArea logArea
+        + ServerGUI()
+        + synchronized int getSelectedPlayers()
+        + void waitForWindowClose()
+    }
+
+    class Board {
+        + void update(String gameState)
+        + boolean isPlayerInOpponentBase(int playerId)
+        + String toString()
+        + int[][] getBoard()
+        + int[] getOpponentBaseMapping()
+    }
+}
+
+package chinesecheckers.patterns {
+    class GameFacade {
+        - Board board
+        - ClientGUI clientGUI
+        - GameClient gameClient
+        + GameFacade(Board board, ClientGUI clientGUI, GameClient gameClient)
+        + void initializeGame(int maxPlayers)
+        + void updateGameState(String gameState)
+        + void sendMove(int startX, int startY, int endX, int endY)
+        + void skipTurn()
+        + void showPlayerTurnMessage()
+        + void updateStandings(String rankMessage)
+        + void endPlayerTurn()
+        + void endGame()
+    }
+
+    interface Observable {
+        + void addObserver(Observer observer)
+        + void removeObserver(Observer observer)
+        + void notifyObservers(String message)
+    }
+
+    interface Observer {
+        + void update(String message)
+    }
+}
+
+
+
+GameClient --> ClientGUI
+GameClient --> Board
+GameClient --> GameFacade
+ClientGUI --> BoardPanel
+ClientGUI --> GameClient
+BoardPanel --> Board
+BoardPanel --> GameClient
+GameServer --> ClientHandler
+GameServer --> Board
+GameServer --> ServerGUI
+ClientHandler --> Board
+GameServer ..|> Observable
+ClientHandler ..|> Observer
+GameFacade --> Board
+GameFacade --> ClientGUI
+GameFacade --> GameClient
+
+@enduml

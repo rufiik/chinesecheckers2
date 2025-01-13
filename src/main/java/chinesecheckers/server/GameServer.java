@@ -18,6 +18,7 @@ public class GameServer implements Observable{
     private int maxPlayers;
     private int nextPlayerId = 1;
     private final Board board;
+    private boolean running;
     private boolean gameStarted = false;
     private final ServerGUI gui;
     
@@ -35,7 +36,8 @@ public class GameServer implements Observable{
     }
     
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try(ServerSocket serverSocket = new ServerSocket(port)){ 
+            running=true;
             System.out.println("Serwer uruchomiony na porcie: " + port);
             initializeGame(serverSocket);
             startGame(serverSocket);
@@ -45,7 +47,16 @@ public class GameServer implements Observable{
             e.printStackTrace();
         }
     }
-    
+    public void startWithMockSocket(ServerSocket mockServerSocket) {
+        try {
+            mockServerSocket.bind(null);
+            this.running = true;
+        } catch (BindException e) {
+            this.running = false;
+        } catch (IOException e) {
+            this.running = false;
+        }
+    }
     private void initializeGame(ServerSocket serverSocket) throws IOException {
         maxPlayers = gui.getSelectedPlayers();
         System.out.println("Wybrano liczbę graczy: " + maxPlayers);
@@ -94,6 +105,7 @@ public class GameServer implements Observable{
             processTurn();
         }
         System.out.println("Gra zakończona!");
+        running=false;
         cleanupDisconnectedPlayers();
         displayStandings();
         gui.waitForWindowClose();
@@ -175,7 +187,7 @@ public class GameServer implements Observable{
 
         currentPlayerIndex = (currentPlayerIndex + 1) % maxPlayers;
 
-        if ((standings.size() + disconnectedPlayers.size()) == maxPlayers - 1) {
+      if ((standings.size() + disconnectedPlayers.size()) == maxPlayers - 1) {
             for (int id : playerOrder) {
                 if (!standings.contains(id) && !disconnectedPlayers.contains(id)) {
                     standings.add(id);
@@ -275,6 +287,15 @@ public class GameServer implements Observable{
     public synchronized void updateGameState(String move) {
         board.update(move);
         broadcastGameState();
+    }
+    public List<Observer> getObservers() {
+        return observers;
+    }
+    public boolean isRunning() {
+        return running;
+    }
+    public Set<Integer> getDisconnectedPlayers() {
+        return disconnectedPlayers;
     }
     public static void main(String[] args) {
         ServerGUI gui = new ServerGUI();

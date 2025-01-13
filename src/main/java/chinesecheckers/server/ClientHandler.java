@@ -6,8 +6,8 @@ import chinesecheckers.patterns.Observer;
 
 public class ClientHandler implements Observer {
     private final Socket socket;
-    private final PrintWriter out;
-    private final BufferedReader in;
+    private PrintWriter out;
+    private BufferedReader in;
     private final int playerId;
     private final int maxPlayers;
 
@@ -76,5 +76,20 @@ public class ClientHandler implements Observer {
     }
     public int getMaxPlayers() {
         return maxPlayers;
+    }
+    public PrintWriter getOut() {
+        return out;
+    }
+
+    public void setOut(PrintWriter out) {
+        this.out = out;
+    }
+
+    public BufferedReader getIn() {
+        return in;
+    }
+
+    public void setIn(BufferedReader in) {
+        this.in = in;
     }
 }

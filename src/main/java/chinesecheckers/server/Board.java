@@ -107,7 +107,7 @@ public class Board {
                 break;
     
             default:
-                throw new IllegalArgumentException("Invalid number of players: " + numberOfPlayers);
+                throw new IllegalArgumentException("Nieprawidłowa ilość graczy: " + numberOfPlayers);
         }
     }
     
@@ -118,7 +118,7 @@ public class Board {
         }
     }
 
-    private boolean isInOpponentBase(int x, int y, int playerId) {
+    public boolean isInOpponentBase(int x, int y, int playerId) {
         int opponentBaseIndex = opponentBaseMapping[playerId - 1];
         for (int[] base : playerBases.get(opponentBaseIndex)) {
             if (base[0] == x && base[1] == y) {
@@ -265,6 +265,10 @@ private boolean canJump(int startX, int startY, int endX, int endY, int playerId
 
     public int[][] getBoard() {
         return board;
+    }
+
+    public int[] getOpponentBaseMapping() {
+        return opponentBaseMapping;
     }
 
 }
