@@ -16,6 +16,7 @@ public class GameClient {
     private int playerColor;
     private PrintWriter out;
     private int maxPlayers;
+    private String variant;
 
     public GameClient(String host, int port) {
         this.host = host;
@@ -29,6 +30,7 @@ public class GameClient {
 
             System.out.println("Połączono z serwerem!");
             board = new Board();
+           
             String idMessage;
             while ((idMessage = in.readLine()) != null) {
                 if (idMessage.startsWith("PLAYER_ID:")) {
@@ -36,10 +38,13 @@ public class GameClient {
                     playerColor = playerId;
                 } else if (idMessage.startsWith("Liczba graczy:")) {
                     maxPlayers = Integer.parseInt(idMessage.split(":")[1]);
+                    
+                }else if(idMessage.startsWith("Wariant gry:")){
+                    setVariant(idMessage.split(":")[1]);
                     break;
                 }
             }
-
+            board.setVariant(variant);
             ClientGUI clientGUI = new ClientGUI(board, playerColor, this);
             gameFacade = new GameFacade(board, clientGUI, this);
             gameFacade.initializeGame(maxPlayers);
@@ -133,6 +138,15 @@ public class GameClient {
        this.gameFacade = new GameFacade(board, new ClientGUI(board, playerColor, this), this);
        return this.gameFacade;
     }
+    public String getVariant() {
+        return variant;
+    }
+    public void setVariant(String variant) {
+        this.variant = variant;
+    }
+    public int getMaxPlayers(){
+        return maxPlayers;
+    }   
 
     public static void main(String[] args) {
         GameClient client = new GameClient("localhost", 12345);

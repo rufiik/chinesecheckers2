@@ -126,9 +126,8 @@ public class BoardPanel extends JPanel {
                 g.fillOval(startX + j * cellSize, startY + i * cellSize, cellSize, cellSize);
             }
         }
-
-        if ("Order Out Of Chaos".equals(board.getVariant())) {
-            for (int playerId = 1; playerId <= board.getMaxPlayers(); playerId++) {
+        if ("Order Out Of Chaos".equals(gameClient.getVariant())) {
+            for (int playerId = 1; playerId <= gameClient.getMaxPlayers(); playerId++) {
                 Set<int[]> homeBasePositions = board.getHomeBasePositions(playerId);
                 g.setColor(getPieceColor(playerId));
                 for (int[] pos : homeBasePositions) {

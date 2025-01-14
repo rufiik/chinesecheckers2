@@ -11,7 +11,7 @@ public class ClientHandler implements Observer {
     private final int playerId;
     private final int maxPlayers;
 
-    public ClientHandler(Socket socket, int playerId, int maxPlayers) throws IOException {
+    public ClientHandler(Socket socket, int playerId, int maxPlayers,String variant) throws IOException {
         this.socket = socket;
         this.out = new PrintWriter(socket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -20,6 +20,7 @@ public class ClientHandler implements Observer {
         sendMessage("Witaj, Graczu " + playerId + "!");
         sendMessage("PLAYER_ID:" + playerId);
         sendMessage("Liczba graczy:" + maxPlayers);
+        sendMessage("Wariant gry:"+ variant);
     }
 
     @Override

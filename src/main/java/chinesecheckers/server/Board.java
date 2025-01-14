@@ -274,7 +274,6 @@ public class Board {
         if (!isEmpty(endX, endY)) {
             return false;
         }
-
         if ("Order Out Of Chaos".equals(variant)) {
             if (isInHomeBase(startX, startY, playerId) && !isInHomeBase(endX, endY, playerId)) {
                 return false;
@@ -355,15 +354,7 @@ public class Board {
         this.maxPlayers = maxPlayers;
     }
 
-    public int getMaxPlayers() {
-        return maxPlayers;
-    }
-
     public void setVariant(String variant) {
         this.variant = variant;
-    }
-
-    public String getVariant() {
-        return variant;
     }
 }

@@ -280,7 +280,7 @@ public class GameServer implements Observable{
                             clientSocket.close();
                         }
                     } else {
-                        ClientHandler player = new ClientHandler(clientSocket, nextPlayerId++,maxPlayers);
+                        ClientHandler player = new ClientHandler(clientSocket, nextPlayerId++,maxPlayers,variant);
                         if (player.isConnected()) {
                             players.add(player);
                             addObserver(player);
