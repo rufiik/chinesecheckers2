@@ -66,7 +66,7 @@ class BoardTest {
         assertEquals(6, board.getBoard()[4][24]); 
     }
     @Test
-    void testInitializeBoardIllegalArgumentException(){
+    void testInitializeBoardIllegalArgumentException() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             board.initializeBoardForPlayers(5);
         });
@@ -92,6 +92,7 @@ class BoardTest {
         assertTrue(board.isInOpponentBase(16, 12, 1));
         assertFalse(board.isInOpponentBase(0, 12, 1));
     }
+
     @Test
     void testInitializeOpponentBaseMapping() {
         Board board = new Board();
@@ -108,18 +109,16 @@ class BoardTest {
         });
         assertEquals("Nieprawidłowa ilość graczy: 5", exception.getMessage());
     }
+
     @Test
-    void TestValidMoves(){
-        //Test within bounds
+    void TestValidMoves() {
         assertTrue(board.isValidMove(3, 9, 4, 8,1));
-        // Test valid adjacent move
         board.getBoard()[3][9] = 1; 
         String result = board.movePiece(3, 9, 4, 8, 1);
         assertEquals("Ruch wykonany z (3,9) na (4,8).", result);
         assertEquals(1, board.getBoard()[4][8]);
         assertEquals(0, board.getBoard()[3][9]);
 
-        // Test valid jump move
         board.getBoard()[4][8] = 1; 
         board.getBoard()[5][7] = 2; 
         result = board.movePiece(4, 8, 6, 6, 1);
@@ -127,7 +126,6 @@ class BoardTest {
         assertEquals(1, board.getBoard()[6][6]);
         assertEquals(0, board.getBoard()[4][8]);
 
-        // Test valid multi-jump move
         board.getBoard()[6][6] = 1; 
         board.getBoard()[7][5] = 2; 
         board.getBoard()[9][3] = 2; 
@@ -137,41 +135,38 @@ class BoardTest {
         assertEquals(0, board.getBoard()[6][6]);
 
     }
+
     @Test
-    void TestIsPlayerInOponnentBase(){
+    void TestIsPlayerInOponnentBase() {
         assertTrue(board.isInOpponentBase(16, 12, 1));
         assertTrue(board.isInOpponentBase(0, 12, 2));
         assertFalse(board.isInOpponentBase(0, 12, 1));
     }
+
     @Test
     void testIsValidMove() {
         board.initializeBoardForPlayers(2);
         board.initializeOpponentBaseMapping(2);
 
-        // Test case: start position is out of bounds
         assertFalse(board.isValidMove(-1, 9, 4, 8, 1));
         assertFalse(board.isValidMove(3, 9, 17, 8, 1));
 
-        // Test case: start position does not have a piece
         assertFalse(board.isValidMove(4, 8, 5, 7, 1));
 
-        // Test case: end position is not empty
         board.getBoard()[3][9] = 1; 
         board.getBoard()[4][8] = 2; 
         assertFalse(board.isValidMove(3, 9, 4, 8, 1));
 
-        // Test case: start position is in opponent base but end position is not
         board.getBoard()[16][12] = 1; 
         assertFalse(board.isValidMove(16, 12, 15, 11, 1));
-          // Test case: start position is in opponent base and end position is also in opponent base
         board.getBoard()[16][12] = 1; 
         board.getBoard()[15][11] = 0; 
         assertTrue(board.isValidMove(16, 12, 15, 11, 1));
-        // Test case: valid move
         board.getBoard()[3][9] = 1;
         board.getBoard()[4][8] = 0; 
         assertTrue(board.isValidMove(3, 9, 4, 8, 1));
     }
+
     @Test
     void testIsPlayerInOpponentBase() {
         board.getBoard()[16][12] = 1;
@@ -185,12 +180,10 @@ class BoardTest {
         board.getBoard()[13][13] = 1;
         board.getBoard()[13][15] = 1;
 
-        // Sprawdzenie, czy metoda zwraca true, gdy wszystkie pionki gracza 1 są w bazie przeciwnika
         assertTrue(board.isPlayerInOpponentBase(1));
 
         board.getBoard()[13][15] = 0;
 
-        // Sprawdzenie, czy metoda zwraca false, gdy jeden pionek gracza 1 nie jest w bazie przeciwnika
         assertFalse(board.isPlayerInOpponentBase(1));
 
         board.getBoard()[0][12] = 2;
@@ -204,13 +197,10 @@ class BoardTest {
         board.getBoard()[3][13] = 2;
         board.getBoard()[3][15] = 2;
 
-        // Sprawdzenie, czy metoda zwraca true, gdy wszystkie pionki gracza 2 są w bazie przeciwnika
         assertTrue(board.isPlayerInOpponentBase(2));
 
-        // Ustawienie jednego pionka gracza 2 poza bazą przeciwnika
         board.getBoard()[3][15] = 0;
 
-        // Sprawdzenie, czy metoda zwraca false, gdy jeden pionek gracza 2 nie jest w bazie przeciwnika
         assertFalse(board.isPlayerInOpponentBase(2));
     }
 }
