@@ -3,6 +3,7 @@ package chinesecheckers.server;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class Board {
@@ -11,14 +12,15 @@ public class Board {
     private static final int COLUMNS = 25;
     private List<Set<int[]>> playerBases;
     private int[] opponentBaseMapping;
+    private int maxPlayers;
+    private String variant;
 
     public Board() {
         board = new int[ROWS][COLUMNS];
         initializeBoard();
         initializePlayerBases();
-        
-        
     }
+
     private void initializeBoard() {
         board = new int[][] {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7},
@@ -40,6 +42,7 @@ public class Board {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7}
         };
     }
+
     private void initializePlayerBases() {
         playerBases = new ArrayList<>(6);
         for (int i = 0; i < 6; i++) {
@@ -72,11 +75,13 @@ public class Board {
                 throw new IllegalArgumentException("Nieprawidłowa ilość graczy: " + numberOfPlayers);
         }
     }
+
     private void addPlayerBase(int playerIndex, int[][] positions) {
         for (int[] pos : positions) {
             playerBases.get(playerIndex).add(pos);
         }
     }
+
     public void initializeBoardForPlayers(int numberOfPlayers) {
         switch (numberOfPlayers) {
             case 2:
@@ -111,11 +116,50 @@ public class Board {
         }
     }
     
+    public void initializeBoardForChaos(int numberOfPlayers) {
+        Random random = new Random();
+        int piecesPerPlayer = 10;
+        List<int[]> validPositions = new ArrayList<>();
+
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+                if (board[i][j] == 0 && !isInAnyBase(i, j)) {
+                    validPositions.add(new int[]{i, j});
+                }
+            }
+        }
+
+        for (int i = validPositions.size() - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int[] temp = validPositions.get(i);
+            validPositions.set(i, validPositions.get(j));
+            validPositions.set(j, temp);
+        }
+
+        int index = 0;
+        for (int player = 1; player <= numberOfPlayers; player++) {
+            for (int p = 0; p < piecesPerPlayer; p++) {
+                int[] pos = validPositions.get(index++);
+                board[pos[0]][pos[1]] = player;
+            }
+        }
+    }
 
     private void setPlayerPieces(int player, int[][] positions) {
         for (int[] pos : positions) {
             board[pos[0]][pos[1]] = player;
         }
+    }
+
+    private boolean isInAnyBase(int x, int y) {
+        for (Set<int[]> base : playerBases) {
+            for (int[] pos : base) {
+                if (pos[0] == x && pos[1] == y) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public boolean isInOpponentBase(int x, int y, int playerId) {
@@ -126,6 +170,34 @@ public class Board {
             }
         }
         return false;
+    }
+
+    public boolean isInHomeBase(int x, int y, int playerId) {
+        for (int[] base : playerBases.get(playerId - 1)) {
+            if (base[0] == x && base[1] == y) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean allPiecesInHomeBase(int playerId) {
+        Set<int[]> homeBase = playerBases.get(playerId - 1);
+        for (int[] pos : homeBase) {
+            if (board[pos[0]][pos[1]] != playerId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Set<int[]> getHomeBasePositions(int playerId) {
+        return playerBases.get(playerId - 1);
+    }
+
+    public Set<int[]> getOpponentBasePositions(int playerId) {
+        int opponentBaseIndex = opponentBaseMapping[playerId - 1];
+        return playerBases.get(opponentBaseIndex);
     }
 
     public synchronized String movePiece(int startX, int startY, int endX, int endY, int playerId) {
@@ -141,72 +213,82 @@ public class Board {
     public boolean hasPiece(int x, int y) {
         return board[x][y] != 0 && board[x][y] != 7;
     }
+
     public boolean isEmpty(int x, int y) {
         return board[x][y] == 0;
     }
+
     public List<int[]> getPossibleJumps(int startX, int startY, int playerId) {
-    List<int[]> jumps = new ArrayList<>();
-    int[][] directions = {
-        {-2, 0}, {2, 0}, {0, -2}, {0, 2}, {-2, -2}, {2, 2}, {-2, 2}, {2, -2}
-    };
+        List<int[]> jumps = new ArrayList<>();
+        int[][] directions = {
+            {-2, 0}, {2, 0}, {0, -2}, {0, 2}, {-2, -2}, {2, 2}, {-2, 2}, {2, -2}
+        };
 
-    for (int[] dir : directions) {
-        int midX = startX + dir[0] / 2;
-        int midY = startY + dir[1] / 2;
-        int endX = startX + dir[0];
-        int endY = startY + dir[1];
-        if (isWithinBoard(endX, endY) && hasPiece(midX, midY) && isEmpty(endX, endY)) {
-            jumps.add(new int[]{endX, endY});
+        for (int[] dir : directions) {
+            int midX = startX + dir[0] / 2;
+            int midY = startY + dir[1] / 2;
+            int endX = startX + dir[0];
+            int endY = startY + dir[1];
+            if (isWithinBoard(endX, endY) && hasPiece(midX, midY) && isEmpty(endX, endY)) {
+                jumps.add(new int[]{endX, endY});
+            }
         }
+
+        return jumps;
     }
 
-    return jumps;
-}
-
-public boolean isValidMultiJump(int startX, int startY, int endX, int endY, int playerId) {
-    Set<String> visited = new HashSet<>();
-    boolean result = canJump(startX, startY, endX, endY, playerId, visited);
-    return result;
-}
-
-private boolean canJump(int startX, int startY, int endX, int endY, int playerId, Set<String> visited) {
-    if (startX == endX && startY == endY) {
-        return true;
+    public boolean isValidMultiJump(int startX, int startY, int endX, int endY, int playerId) {
+        Set<String> visited = new HashSet<>();
+        boolean result = canJump(startX, startY, endX, endY, playerId, visited);
+        return result;
     }
 
-    visited.add(startX + "," + startY);
-
-    for (int[] jump : getPossibleJumps(startX, startY, playerId)) {
-        int nextX = jump[0];
-        int nextY = jump[1];
-        if (!visited.contains(nextX + "," + nextY) && canJump(nextX, nextY, endX, endY, playerId, visited)) {
+    private boolean canJump(int startX, int startY, int endX, int endY, int playerId, Set<String> visited) {
+        if (startX == endX && startY == endY) {
             return true;
         }
-    }
 
-    visited.remove(startX + "," + startY);
-    return false;
-}
+        visited.add(startX + "," + startY);
+
+        for (int[] jump : getPossibleJumps(startX, startY, playerId)) {
+            int nextX = jump[0];
+            int nextY = jump[1];
+            if (!visited.contains(nextX + "," + nextY) && canJump(nextX, nextY, endX, endY, playerId, visited)) {
+                return true;
+            }
+        }
+
+        visited.remove(startX + "," + startY);
+        return false;
+    }
 
     public boolean isValidMove(int startX, int startY, int endX, int endY, int playerId) {
         if (!isWithinBoard(startX, startY) || !isWithinBoard(endX, endY)) {
             return false;
         }
+
         if (!hasPiece(startX, startY)) {
             return false;
         }
+
         if (!isEmpty(endX, endY)) {
             return false;
         }
-        if (isInOpponentBase(startX, startY, playerId)) {
-            if (!isInOpponentBase(endX, endY, playerId)) {
-                return false; 
+
+        if ("Order Out Of Chaos".equals(variant)) {
+            if (isInHomeBase(startX, startY, playerId) && !isInHomeBase(endX, endY, playerId)) {
+                return false;
+            }
+        } else if ("Rozgrywka klasyczna".equals(variant)) {
+            if (isInOpponentBase(startX, startY, playerId) && !isInOpponentBase(endX, endY, playerId)) {
+                return false;
             }
         }
-     if (isAdjacentMove(startX, startY, endX, endY) || isJumpMove(startX, startY, endX, endY) || isValidMultiJump(startX, startY, endX, endY, playerId)) {
-       return true;
-    }
-    return false;
+
+        if (isAdjacentMove(startX, startY, endX, endY) || isJumpMove(startX, startY, endX, endY) || isValidMultiJump(startX, startY, endX, endY, playerId)) {
+            return true;
+        }
+        return false;
     }
 
     private boolean isWithinBoard(int x, int y) {
@@ -261,8 +343,6 @@ private boolean canJump(int startX, int startY, int endX, int endY, int playerId
         return sb.toString();
     }
 
-
-
     public int[][] getBoard() {
         return board;
     }
@@ -271,4 +351,19 @@ private boolean canJump(int startX, int startY, int endX, int endY, int playerId
         return opponentBaseMapping;
     }
 
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public void setVariant(String variant) {
+        this.variant = variant;
+    }
+
+    public String getVariant() {
+        return variant;
+    }
 }

@@ -3,6 +3,7 @@ package chinesecheckers.client;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Set;
 
 import chinesecheckers.server.Board;
 
@@ -123,6 +124,22 @@ public class BoardPanel extends JPanel {
                         break;
                 }
                 g.fillOval(startX + j * cellSize, startY + i * cellSize, cellSize, cellSize);
+            }
+        }
+
+        if ("Order Out Of Chaos".equals(board.getVariant())) {
+            for (int playerId = 1; playerId <= board.getMaxPlayers(); playerId++) {
+                Set<int[]> homeBasePositions = board.getHomeBasePositions(playerId);
+                g.setColor(getPieceColor(playerId));
+                for (int[] pos : homeBasePositions) {
+                    g.drawOval(startX + pos[1] * cellSize, startY + pos[0] * cellSize, cellSize, cellSize);
+                }
+            }
+        } else {
+            Set<int[]> opponentBasePositions = board.getOpponentBasePositions(playerColor);
+            g.setColor(getPieceColor(playerColor));
+            for (int[] pos : opponentBasePositions) {
+                g.drawOval(startX + pos[1] * cellSize, startY + pos[0] * cellSize, cellSize, cellSize);
             }
         }
     }

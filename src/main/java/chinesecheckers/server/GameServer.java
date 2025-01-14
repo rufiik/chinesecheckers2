@@ -21,6 +21,7 @@ public class GameServer implements Observable{
     private boolean running;
     private boolean gameStarted = false;
     private final ServerGUI gui;
+    private String variant;
     
     private GameServer(int port, ServerGUI gui) {
         this.port = port;
@@ -47,6 +48,7 @@ public class GameServer implements Observable{
             e.printStackTrace();
         }
     }
+
     public void startWithMockSocket(ServerSocket mockServerSocket) {
         try {
             mockServerSocket.bind(null);
@@ -57,10 +59,21 @@ public class GameServer implements Observable{
             this.running = false;
         }
     }
+
     private void initializeGame(ServerSocket serverSocket) throws IOException {
+        variant = gui.getSelectedVariant();
         maxPlayers = gui.getSelectedPlayers();
         System.out.println("Wybrano liczbę graczy: " + maxPlayers);
-        board.initializeBoardForPlayers(maxPlayers);
+
+        board.setMaxPlayers(maxPlayers);
+        board.setVariant(variant);
+
+        if ("Order Out Of Chaos".equals(variant)) {
+            board.initializeBoardForChaos(maxPlayers);
+        } else {
+            board.initializeBoardForPlayers(maxPlayers);
+        }
+
         System.out.println("Oczekiwanie na graczy..."); 
         new Thread(() -> handleNewConnections(serverSocket)).start();
         synchronized (players) {
@@ -69,7 +82,7 @@ public class GameServer implements Observable{
                     players.wait();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    System.out.println("Waiting for players interrupted.");
+                    System.out.println("Oczekiwanie na graczy przerwane.");
                 }
             }
         }
@@ -80,7 +93,6 @@ public class GameServer implements Observable{
         
         System.out.println("Wszyscy gracze dołączyli. Losowanie kolejności...");
         Collections.shuffle(playerOrder);
-        board.initializeBoardForPlayers(maxPlayers);
         board.initializeOpponentBaseMapping(maxPlayers);
         for (ClientHandler player : players) {
             player.sendMessage("Kolejność gry: " + playerOrder.toString());
@@ -112,7 +124,7 @@ public class GameServer implements Observable{
         System.exit(0);
     }
 
-    private void processTurn() {
+    private synchronized void processTurn() {
         int playerId = playerOrder.get(currentPlayerIndex);
         ClientHandler currentPlayer = null;
 
@@ -167,12 +179,18 @@ public class GameServer implements Observable{
                             broadcastMessage("Gracz " + playerId + " wykonał ruch: " + move, playerId);
                             broadcastGameState();
 
-                            if (board.isPlayerInOpponentBase(playerId) && !standings.contains(playerId)) {
+                            if ("Order Out Of Chaos".equals(variant) && board.allPiecesInHomeBase(playerId) && !standings.contains(playerId)) {
+                                standings.add(playerId);
+                                broadcastMessage("Gracz " + playerId + " zajął miejsce " + standings.size() + "!");
+                            } else if (board.isPlayerInOpponentBase(playerId) && !standings.contains(playerId)) {
                                 standings.add(playerId);
                                 broadcastMessage("Gracz " + playerId + " zajął miejsce " + standings.size() + "!");
                             }
-                        } else {
+                        } else if (result.startsWith("Nieprawidłowy ruch")) {
                             currentPlayer.sendMessage("Nieprawidłowy ruch. Spróbuj ponownie.");
+                        } else {
+                            currentPlayer.sendMessage("Błąd: " + result);
+                            System.out.println("Błąd: " + result);
                         }
                     } catch (NumberFormatException e) {
                         currentPlayer.sendMessage("Nieprawidłowe współrzędne. Spróbuj ponownie.");

@@ -1,17 +1,17 @@
 package chinesecheckers.client;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.Test;
 
-import chinesecheckers.patterns.GameFacade;
-import chinesecheckers.server.Board;
+//import chinesecheckers.patterns.GameFacade;
+//import chinesecheckers.server.Board;
 
-import java.io.*;
-import java.net.Socket;
-import java.net.UnknownHostException;
+//import java.io.*;
+//import java.net.Socket;
+//import java.net.UnknownHostException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+//import static org.junit.jupiter.api.Assertions.*;
+//import static org.mockito.Mockito.*;
 
 // class GameClientTest {
 //     private GameClient gameClient;

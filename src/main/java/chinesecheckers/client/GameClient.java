@@ -9,40 +9,22 @@ import chinesecheckers.server.Board;
 public class GameClient {
     private final String host;
     private final int port;
-    private final Socket socket;
     private boolean isPlayerTurn = false;
-    public boolean isConnected = true;
+    private boolean isConnected = true;
     private GameFacade gameFacade;
-    public Board board;
-    public int playerColor;
-    public PrintWriter out;
-    public int maxPlayers;
+    private Board board;
+    private int playerColor;
+    private PrintWriter out;
+    private int maxPlayers;
 
     public GameClient(String host, int port) {
         this.host = host;
         this.port = port;
-        Socket tempSocket = null;
-        try {
-            tempSocket = new Socket(host, port);
-        } catch (UnknownHostException e) {
-            System.err.println("Nieznany host: " + host);
-            throw new RuntimeException("Nieznany host: " + host, e);
-        } catch (IOException e) {
-            System.err.println("Błąd wejścia/wyjścia podczas łączenia z hostem: " + host);
-            throw new RuntimeException("Błąd wejścia/wyjścia podczas łączenia z hostem: " + host, e);
-        }
-        this.socket = tempSocket;
-    }
-    public GameClient(String host, int port, Socket socket) {
-        this.host = host;
-        this.port = port;
-        this.socket = socket;
     }
 
-
-    public void start(BufferedReader in, PrintWriter out) {
-        this.out = out;
-        try {
+    public void start() {
+        try (Socket socket = new Socket(host, port);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             out = new PrintWriter(socket.getOutputStream(), true);
 
             System.out.println("Połączono z serwerem!");
@@ -52,16 +34,16 @@ public class GameClient {
                 if (idMessage.startsWith("PLAYER_ID:")) {
                     int playerId = Integer.parseInt(idMessage.split(":")[1]);
                     playerColor = playerId;
-             
-                }
-                else if (idMessage.startsWith("Liczba graczy:")) {
+                } else if (idMessage.startsWith("Liczba graczy:")) {
                     maxPlayers = Integer.parseInt(idMessage.split(":")[1]);
                     break;
                 }
             }
+
             ClientGUI clientGUI = new ClientGUI(board, playerColor, this);
             gameFacade = new GameFacade(board, clientGUI, this);
             gameFacade.initializeGame(maxPlayers);
+
             new Thread(() -> {
                 try {
                     String serverMessage;
@@ -114,28 +96,18 @@ public class GameClient {
             System.exit(1);
         }
     }
+
     public void stopConnection() {
         if (isConnected) {
             isConnected = false;
-            try {
-                socket.close();
-                out.close();
-            } catch (IOException e) {
-                System.out.println("Rozłączono z serwerem.");
-            }
+            System.out.println("Rozłączono z serwerem.");
         }
     }
 
     public void closeConnection() {
         if (isConnected) {
             isConnected = false;
-            try {
-                socket.close();
-                out.close();
-            } catch (IOException e) {
-                System.out.println("Gra już się rozpoczęła.");
-
-            }
+            System.out.println("Gra już się rozpoczęła.");
         }
     }
 
@@ -145,27 +117,25 @@ public class GameClient {
             gameFacade.endPlayerTurn();
         });
     }
+
     public void skipTurn() {
         out.println("SKIP TURN");
         SwingUtilities.invokeLater(() -> {
             gameFacade.endPlayerTurn();
         });
     }
+
     public boolean getPlayerTurn(){
         return isPlayerTurn;
     }
+
     public GameFacade setFacade(){
        this.gameFacade = new GameFacade(board, new ClientGUI(board, playerColor, this), this);
        return this.gameFacade;
     }
+
     public static void main(String[] args) {
         GameClient client = new GameClient("localhost", 12345);
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(client.socket.getInputStream()));
-            PrintWriter out = new PrintWriter(client.socket.getOutputStream(), true);
-            client.start(in, out);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        client.start();
     }
 }

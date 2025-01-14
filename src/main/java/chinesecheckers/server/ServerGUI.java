@@ -1,4 +1,5 @@
 package chinesecheckers.server;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +10,7 @@ import java.awt.event.ActionEvent;
 
 public class ServerGUI {
     private int selectedPlayers;
+    private String selectedVariant;
     private final JFrame frame;
     private final JTextArea logArea;
 
@@ -17,16 +19,87 @@ public class ServerGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(400, 500);
         frame.setLocationRelativeTo(null);
-               
         frame.setLayout(new BorderLayout(10, 10));
 
-        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        JPanel variantPanel = createVariantPanel();
+        JPanel playerSelectionPanel = createPlayerSelectionPanel();
+
+        logArea = new JTextArea();
+        logArea.setEditable(false);
+        logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JScrollPane scrollPane = new JScrollPane(logArea);
+
+        PrintStream printStream = new PrintStream(new CustomOutputStream(logArea));
+        System.setOut(printStream);
+        System.setErr(printStream);
+
+        frame.add(variantPanel, BorderLayout.NORTH);
+        frame.setVisible(true);
+
+        for (Component component : ((JPanel) variantPanel.getComponent(1)).getComponents()) {
+            if (component instanceof JButton) {
+                JButton button = (JButton) component;
+                button.addActionListener((ActionEvent e) -> {
+                    selectedVariant = button.getText();
+                    synchronized (this) {
+                        this.notify();
+                    }
+                    frame.getContentPane().remove(variantPanel);
+                    frame.add(playerSelectionPanel, BorderLayout.NORTH);
+                    frame.revalidate();
+                    frame.repaint();
+                });
+            }
+        }
+
+        for (Component component : ((JPanel) playerSelectionPanel.getComponent(1)).getComponents()) {
+            if (component instanceof JButton) {
+                JButton button = (JButton) component;
+                button.addActionListener((ActionEvent e) -> {
+                    selectedPlayers = Integer.parseInt(button.getText());
+                    synchronized (this) {
+                        this.notify();
+                    }
+                    frame.getContentPane().remove(playerSelectionPanel);
+                    frame.add(scrollPane, BorderLayout.CENTER);
+                    frame.revalidate();
+                    frame.repaint();
+                });
+            }
+        }
+    }
+
+    private JPanel createVariantPanel() {
+        JPanel variantPanel = new JPanel(new BorderLayout(10, 10));
+        JLabel label = new JLabel("Wybierz wariant gry:", SwingConstants.CENTER);
+        label.setFont(new Font("FF DIN", Font.BOLD, 30));
+        label.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        variantPanel.add(label, BorderLayout.NORTH);
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        String[] variants = {"Rozgrywka klasyczna", "Order Out Of Chaos"};
+        for (String variant : variants) {
+            JButton button = new JButton(variant);
+            button.setFont(new Font("Serif", Font.BOLD, 30));
+            button.setBackground(new Color(35, 65, 225));
+            button.setForeground(Color.WHITE);
+            button.setOpaque(true);
+            button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+            buttonPanel.add(button);
+        }
+
+        variantPanel.add(buttonPanel, BorderLayout.CENTER);
+        return variantPanel;
+    }
+
+    private JPanel createPlayerSelectionPanel() {
+        JPanel playerSelectionPanel = new JPanel(new BorderLayout(10, 10));
         JLabel label = new JLabel("Wybierz liczbę graczy:", SwingConstants.CENTER);
         label.setFont(new Font("FF DIN", Font.BOLD, 30));
         label.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
-        topPanel.add(label, BorderLayout.NORTH);
+        playerSelectionPanel.add(label, BorderLayout.NORTH);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         int[] playerOptions = {2, 3, 4, 6};
         Color[] buttonColors = {new Color(139, 0, 0), new Color(0, 100, 0), new Color(0, 0, 139), new Color(255, 140, 0)};
         for (int i = 0; i < playerOptions.length; i++) {
@@ -37,31 +110,11 @@ public class ServerGUI {
             button.setForeground(Color.WHITE);
             button.setOpaque(true);
             button.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-            button.addActionListener((ActionEvent e) -> {
-                selectedPlayers = option;
-                synchronized (this) {
-                    this.notify();
-                }
-                frame.getContentPane().remove(topPanel);
-                frame.revalidate();
-                frame.repaint();
-            });
             buttonPanel.add(button);
         }
-        topPanel.add(buttonPanel, BorderLayout.CENTER);
-        frame.add(topPanel, BorderLayout.NORTH);
 
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        logArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        frame.add(scrollPane, BorderLayout.CENTER);
-
-        PrintStream printStream = new PrintStream(new CustomOutputStream(logArea));
-        System.setOut(printStream);
-        System.setErr(printStream);
-
-        frame.setVisible(true);
+        playerSelectionPanel.add(buttonPanel, BorderLayout.CENTER);
+        return playerSelectionPanel;
     }
 
     public synchronized int getSelectedPlayers() {
@@ -73,6 +126,15 @@ public class ServerGUI {
         return selectedPlayers;
     }
 
+    public synchronized String getSelectedVariant() {
+        try {
+            this.wait();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return selectedVariant;
+    }
+
     public void waitForWindowClose() {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -82,7 +144,7 @@ public class ServerGUI {
                 }
             }
         });
-    
+
         synchronized (this) {
             try {
                 this.wait();
@@ -92,7 +154,6 @@ public class ServerGUI {
             }
         }
     }
-    
 
     class CustomOutputStream extends OutputStream {
         private final JTextArea textArea;
