@@ -1,9 +1,9 @@
-Żeby skompilować 
+Aby skompilować </br>
 server:
 mvn exec:java -Pserver </br>
 clienta:
-mvn exec:java -Pclient
-javadoc:
-mvn javadoc:javadoc
-testy:
-mvn clean test
+mvn exec:java -Pclient </br></br>
+Dokumentacja javadoc:
+mvn javadoc:javadoc </br>
+Testy:
+mvn clean test </br>
