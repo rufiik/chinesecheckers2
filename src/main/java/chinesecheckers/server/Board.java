@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
+/**
+ * Klasa Board reprezentuje planszę do gry w chińskie warcaby.
+ */
 public class Board {
     private int[][] board;
     private static final int ROWS = 17;
@@ -14,13 +16,18 @@ public class Board {
     private int[] opponentBaseMapping;
     private int maxPlayers;
     private String variant;
-
+/**
+ *  Konstruktor klasy Board.  
+ *  Inicjalizuje planszę do gry oraz bazy graczy.
+ */
     public Board() {
         board = new int[ROWS][COLUMNS];
         initializeBoard();
         initializePlayerBases();
     }
-
+/**
+ *  Metoda initializeBoard inicjalizuje planszę do gry.
+ */
     private void initializeBoard() {
         board = new int[][] {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7},
@@ -42,7 +49,9 @@ public class Board {
             {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7}
         };
     }
-
+/**
+ * Metoda initializePlayerBases inicjalizuje bazy graczy.
+ */
     private void initializePlayerBases() {
         playerBases = new ArrayList<>(6);
         for (int i = 0; i < 6; i++) {
@@ -56,7 +65,10 @@ public class Board {
         addPlayerBase(4, new int[][]{{4, 0}, {5, 1}, {4, 2}, {6, 2}, {5, 3}, {4, 4}, {5, 5}, {6, 4}, {7, 3}, {4, 6}});
         addPlayerBase(5, new int[][]{{4, 24}, {5, 23}, {4, 22}, {6, 22}, {5, 21}, {7, 21}, {4, 20}, {6, 20}, {4, 18}, {5, 19}});
     }
-
+/**
+ * Metoda initializeOpponentBaseMapping inicjalizuje mapowanie bazy przeciwnika.
+ * @param numberOfPlayers Liczba graczy.
+ */
     public void initializeOpponentBaseMapping(int numberOfPlayers) {
         switch(numberOfPlayers) {
             case 2:
@@ -75,13 +87,21 @@ public class Board {
                 throw new IllegalArgumentException("Nieprawidłowa ilość graczy: " + numberOfPlayers);
         }
     }
-
+/**
+ * Metoda addPlayerBase dodaje bazę gracza.
+ * @param playerIndex Indeks gracza.
+ * @param positions Pozycje gracza.
+ */
     private void addPlayerBase(int playerIndex, int[][] positions) {
         for (int[] pos : positions) {
             playerBases.get(playerIndex).add(pos);
         }
     }
-
+/**
+ * Metoda initializeBoardForPlayers inicjalizuje planszę dla określonej liczby graczy.
+ * @param numberOfPlayers Liczba graczy.
+ * @throws IllegalArgumentException Jeśli liczba graczy jest nieprawidłowa.
+ */
     public void initializeBoardForPlayers(int numberOfPlayers) {
         switch (numberOfPlayers) {
             case 2:
@@ -115,7 +135,10 @@ public class Board {
                 throw new IllegalArgumentException("Nieprawidłowa ilość graczy: " + numberOfPlayers);
         }
     }
-    
+    /**
+     * Metoda initializeBoardForChaos inicjalizuje planszę dla gry w Order Out Of Chaos.
+     * @param numberOfPlayers Liczba graczy.
+     */
     public void initializeBoardForChaos(int numberOfPlayers) {
         Random random = new Random();
         int piecesPerPlayer = 10;
@@ -144,13 +167,22 @@ public class Board {
             }
         }
     }
-
+/**
+ * Metoda setVariant ustawia wariant gry.
+ * @param player - numer gracza
+ * @param positions - pozycje gracza
+ */
     private void setPlayerPieces(int player, int[][] positions) {
         for (int[] pos : positions) {
             board[pos[0]][pos[1]] = player;
         }
     }
-
+/**
+ * Metoda isInAnyBase sprawdza, czy dana pozycja jest w bazie któregokolwiek gracza.
+ * @param x - współrzędna x
+ * @param y - współrzędna y
+ * @return true, jeśli pozycja jest w bazie któregokolwiek gracza, w przeciwnym razie false.
+ */
     private boolean isInAnyBase(int x, int y) {
         for (Set<int[]> base : playerBases) {
             for (int[] pos : base) {
@@ -161,7 +193,13 @@ public class Board {
         }
         return false;
     }
-
+/**
+ * Metoda isInOpponentBase sprawdza, czy dana pozycja jest w bazie przeciwnika.
+ * @param x - współrzędna x
+ * @param y - współrzędna y
+ * @param playerId - numer gracza
+ * @return true, jeśli pozycja jest w bazie przeciwnika, w przeciwnym razie false.
+ */
     public boolean isInOpponentBase(int x, int y, int playerId) {
         int opponentBaseIndex = opponentBaseMapping[playerId - 1];
         for (int[] base : playerBases.get(opponentBaseIndex)) {
@@ -171,7 +209,13 @@ public class Board {
         }
         return false;
     }
-
+/**
+ * Metoda isInHomeBase sprawdza, czy dana pozycja jest w bazie domowej gracza.
+ * @param x - współrzędna x
+ * @param y - współrzędna y
+ * @param playerId - numer gracza
+ * @return true, jeśli pozycja jest w bazie domowej gracza, w przeciwnym razie false.
+ */
     public boolean isInHomeBase(int x, int y, int playerId) {
         for (int[] base : playerBases.get(playerId - 1)) {
             if (base[0] == x && base[1] == y) {
@@ -180,7 +224,11 @@ public class Board {
         }
         return false;
     }
-
+/**
+ * Metoda allPiecesInHomeBase sprawdza, czy wszystkie pionki gracza są w bazie domowej.
+ * @param playerId - numer gracza
+ * @return true, jeśli wszystkie pionki gracza są w bazie domowej, w przeciwnym razie false.
+ */
     public boolean allPiecesInHomeBase(int playerId) {
         Set<int[]> homeBase = playerBases.get(playerId - 1);
         for (int[] pos : homeBase) {
@@ -190,16 +238,32 @@ public class Board {
         }
         return true;
     }
-
+/**
+ * getHomeBasePositions zwraca pozycje bazy domowej gracza.
+ * @param playerId - numer gracza
+ * @return pozycje bazy pionków gracza.
+ */
     public Set<int[]> getHomeBasePositions(int playerId) {
         return playerBases.get(playerId - 1);
     }
-
+/**
+ * getOpponentBasePositions zwraca pozycje bazy przeciwnika.
+ * @param playerId - numer gracza
+ * @return pozycje bazy pionków przeciwnika.
+ */
     public Set<int[]> getOpponentBasePositions(int playerId) {
         int opponentBaseIndex = opponentBaseMapping[playerId - 1];
         return playerBases.get(opponentBaseIndex);
     }
-
+/**
+ * Metoda movePiece wykonuje ruch pionka.
+ * @param startX - współrzędna x początku ruchu
+ * @param startY - współrzędna y początku ruchu
+ * @param endX - współrzędna x końca ruchu
+ * @param endY - współrzędna y końca ruchu
+ * @param playerId - numer gracza
+ * @return informacja o wykonanym ruchu
+ */
     public synchronized String movePiece(int startX, int startY, int endX, int endY, int playerId) {
         if (isValidMove(startX, startY, endX, endY, playerId)) {
             board[endX][endY] = board[startX][startY];
@@ -209,15 +273,31 @@ public class Board {
             return "Nieprawidłowy ruch z (" + startX + "," + startY + ") na (" + endX + "," + endY + ").";
         }
     }
-
+/**
+ * Metoda hasPiece sprawdza, czy na danej pozycji znajduje się pionek.
+ * @param x - współrzędna x początku skoku
+ * @param y - współrzędna y początku skoku
+ * @return  true, jeśli na danej pozycji znajduje się pionek, w przeciwnym razie false.
+ */
     public boolean hasPiece(int x, int y) {
         return board[x][y] != 0 && board[x][y] != 7;
     }
-
+/**
+ * Metoda isEmpty sprawdza, czy dana pozycja jest pusta.
+ * @param x - współrzędna x
+ * @param y - współrzędna y
+ * @return true, jeśli pozycja jest pusta, w przeciwnym razie false.
+ */
     public boolean isEmpty(int x, int y) {
         return board[x][y] == 0;
     }
-
+/**
+ * Metoda getPossibleJumps zwraca możliwe skoki.
+ * @param startX - współrzędna x początku skoku
+ * @param startY - współrzędna y początku skoku
+ * @param playerId - numer gracza
+ * @return możliwe skoki
+ */
     public List<int[]> getPossibleJumps(int startX, int startY, int playerId) {
         List<int[]> jumps = new ArrayList<>();
         int[][] directions = {
@@ -236,13 +316,30 @@ public class Board {
 
         return jumps;
     }
-
+/**
+ * Metoda isValidMultiJump sprawdza, czy możliwe jest wielokrotne skakanie.
+ * @param startX - współrzędna x początku skoku
+ * @param startY - współrzędna y początku skoku
+ * @param endX - współrzędna x końca skoku
+ * @param endY - współrzędna y końca skoku
+ * @param playerId - numer gracza
+ * @return true, jeśli możliwe jest wielokrotne skakanie, w przeciwnym razie false.
+ */
     public boolean isValidMultiJump(int startX, int startY, int endX, int endY, int playerId) {
         Set<String> visited = new HashSet<>();
         boolean result = canJump(startX, startY, endX, endY, playerId, visited);
         return result;
     }
-
+/**
+ * Metoda canJump sprawdza, czy możliwe jest skakanie.
+ * @param startX - współrzędna x początku skoku
+ * @param startY - współrzędna y początku skoku
+ * @param endX - współrzędna x końca skoku
+ * @param endY - współrzędna y końca skoku
+ * @param playerId - numer gracza
+ * @param visited - odwiedzone pozycje
+ * @return true, jeśli możliwe jest skakanie, w przeciwnym razie false.
+ */
     private boolean canJump(int startX, int startY, int endX, int endY, int playerId, Set<String> visited) {
         if (startX == endX && startY == endY) {
             return true;
@@ -261,7 +358,15 @@ public class Board {
         visited.remove(startX + "," + startY);
         return false;
     }
-
+/**
+ * Metoda isValidMove sprawdza, czy ruch jest prawidłowy.
+ * @param startX - współrzędna x początku ruchu
+ * @param startY - współrzędna y początku ruchu
+ * @param endX - współrzędna x końca ruchu
+ * @param endY - współrzędna y końca ruchu
+ * @param playerId - numer gracza
+ * @return true, jeśli ruch jest prawidłowy, w przeciwnym razie false.
+ */
     public boolean isValidMove(int startX, int startY, int endX, int endY, int playerId) {
         if (!isWithinBoard(startX, startY) || !isWithinBoard(endX, endY)) {
             return false;
@@ -289,23 +394,45 @@ public class Board {
         }
         return false;
     }
-
+/**
+ * Metoda isWithinBoard sprawdza, czy dana pozycja jest na planszy.
+ * @param x - współrzędna x
+ * @param y - współrzędna y
+ * @return true, jeśli pozycja jest na planszy, w przeciwnym razie false.
+ */
     private boolean isWithinBoard(int x, int y) {
         return x >= 0 && x < ROWS && y >= 0 && y < COLUMNS && board[x][y] != 7;
     }
-
+/**
+ * Metoda isAdjacentMove sprawdza, czy ruch jest sąsiedni.
+ * @param startX - współrzędna x początku ruchu
+ * @param startY - współrzędna y początku ruchu
+ * @param endX - współrzędna x końca ruchu
+ * @param endY - współrzędna y końca ruchu
+ * @return true, jeśli ruch jest sąsiedni, w przeciwnym razie false.
+ */
     private boolean isAdjacentMove(int startX, int startY, int endX, int endY) {
         int dx = Math.abs(startX - endX);
         int dy = Math.abs(startY - endY);
         return (dx == 1 && dy == 0) || (dx == 0 && dy == 1) || (dx == 1 && dy == 1);
     }
-
+/**
+ * Metoda isJumpMove sprawdza, czy ruch jest skokiem.
+ * @param startX - współrzędna x początku ruchu
+ * @param startY - współrzędna y początku ruchu
+ * @param endX - współrzędna x końca ruchu
+ * @param endY - współrzędna y końca ruchu
+ * @return true, jeśli ruch jest skokiem, w przeciwnym razie false.
+ */
     private boolean isJumpMove(int startX, int startY, int endX, int endY) {
         int midX = (startX + endX) / 2;
         int midY = (startY + endY) / 2;
         return hasPiece(midX, midY) && isAdjacentMove(startX, startY, midX, midY) && isAdjacentMove(midX, midY, endX, endY);
     }
-
+/**
+ * Metoda update aktualizuje planszę.
+ * @param gameState - stan gry/planszy
+ */
     public void update(String gameState) {
         String[] rows = gameState.split(";");
         for (int i = 0; i < rows.length; i++) {
@@ -315,7 +442,11 @@ public class Board {
             }
         }
     }
-
+/**
+ * Metoda isPlayerInOpponentBase sprawdza, czy gracz jest w bazie przeciwnika.
+ * @param playerId - numer gracza
+ * @return true, jeśli gracz jest w bazie przeciwnika, w przeciwnym razie false.
+ */
     public boolean isPlayerInOpponentBase(int playerId) {
         int opponentBaseIndex = opponentBaseMapping[playerId - 1];
         Set<int[]> opponentBase = playerBases.get(opponentBaseIndex);
@@ -327,7 +458,9 @@ public class Board {
         }
         return true;
     }
-
+/**
+ * toString zwraca stan planszy w postaci tekstowej.
+ */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -341,19 +474,31 @@ public class Board {
         sb.deleteCharAt(sb.length() - 1); 
         return sb.toString();
     }
-
+/**
+ * Metoda getBoard zwraca planszę.
+ * @return board - plansza
+ */
     public int[][] getBoard() {
         return board;
     }
-
+/**
+ * Metoda getPlayerBases zwraca bazy graczy.
+ * @return oponentBaseMapping - mapowanie baz przeciwników 
+ */
     public int[] getOpponentBaseMapping() {
         return opponentBaseMapping;
     }
-
+/**
+ * Metoda setMaxPlayers ustawia maksymalną liczbę graczy.
+ * @param maxPlayers - maksymalna liczba graczy
+ */
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
     }
-
+/**
+ * Metoda setVariant ustawia wariant gry.
+ * @param variant - wariant gry
+ */
     public void setVariant(String variant) {
         this.variant = variant;
     }

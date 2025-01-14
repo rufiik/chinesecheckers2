@@ -5,7 +5,9 @@ import java.util.*;
 
 import chinesecheckers.patterns.Observable;
 import chinesecheckers.patterns.Observer;
-
+/**
+ * Klasa GameServer reprezentuje serwer gry.
+ */
 public class GameServer implements Observable{
     private static GameServer instance;    
     private final int port;
@@ -22,20 +24,31 @@ public class GameServer implements Observable{
     private boolean gameStarted = false;
     private final ServerGUI gui;
     private String variant;
-    
+    /**
+     * Konstruktor klasy GameServer.
+     * @param port Numer portu serwera.
+     * @param gui Instancja klasy ServerGUI reprezentująca interfejs graficzny serwera.
+     */
     private GameServer(int port, ServerGUI gui) {
         this.port = port;
         this.gui = gui;
         this.board = new Board();
     }
-
+/**
+ * Metoda getInstance zwraca instancję serwera gry.
+ * @param port Numer portu serwera.
+ * @param gui Instancja klasy ServerGUI reprezentująca interfejs graficzny serwera.
+ * @return instance - instancja serwera gry.
+ */
     public static synchronized GameServer getInstance(int port, ServerGUI gui) {
         if (instance == null) {
             instance = new GameServer(port, gui);
         }
         return instance;
     }
-    
+    /**
+     * Metoda start uruchamia serwer gry.
+     */
     public void start() {
         try(ServerSocket serverSocket = new ServerSocket(port)){ 
             running=true;
@@ -48,7 +61,10 @@ public class GameServer implements Observable{
             e.printStackTrace();
         }
     }
-
+    /**
+     * Metoda startWithMockSocket uruchamia serwer gry z podanym gniazdem serwera/mockiem.
+     * @param mockServerSocket Gniazdo serwera.
+     */
     public void startWithMockSocket(ServerSocket mockServerSocket) {
         try {
             mockServerSocket.bind(null);
@@ -59,7 +75,9 @@ public class GameServer implements Observable{
             this.running = false;
         }
     }
-
+/**
+ * Metoda initializeGame inicjalizuje grę.
+ */
     private void initializeGame(ServerSocket serverSocket) throws IOException {
         variant = gui.getSelectedVariant();
         maxPlayers = gui.getSelectedPlayers();
@@ -100,7 +118,9 @@ public class GameServer implements Observable{
         broadcastGameState();
         gameStarted = true;
     }
-
+/**
+ * Metoda removeDisconnectedPlayersBeforeStart usuwa rozłączonych graczy przed rozpoczęciem gry.
+ */
     private void removeDisconnectedPlayersBeforeStart() {
         Iterator<ClientHandler> iterator = players.iterator();
         while (iterator.hasNext()) {
@@ -111,7 +131,11 @@ public class GameServer implements Observable{
             }
         }
     }
-
+/**
+ * Metoda startGame rozpoczyna grę.
+ * @param serverSocket Gniazdo serwera.
+ * @throws IOException Wyjątek wejścia/wyjścia.
+ */
     private void startGame(ServerSocket serverSocket) throws IOException {
         while ((standings.size() + disconnectedPlayers.size()) < maxPlayers) {
             processTurn();
@@ -123,7 +147,9 @@ public class GameServer implements Observable{
         gui.waitForWindowClose();
         System.exit(0);
     }
-
+/**
+ * Metoda processTurn przetwarza turę gracza.
+ */
     private synchronized void processTurn() {
         int playerId = playerOrder.get(currentPlayerIndex);
         ClientHandler currentPlayer = null;
@@ -215,28 +241,41 @@ public class GameServer implements Observable{
             }
         }
     }
-
+/**
+ * Metoda addObserver dodaje obserwatora.
+ */
     @Override
     public void addObserver(Observer observer) {
         observers.add(observer);
     }
-
+/**
+ * Metoda removeObserver usuwa obserwatora.
+ */
     @Override
     public void removeObserver(Observer observer) {
         observers.remove(observer);
     }
-
+/**
+ * Metoda notifyObservers powiadamia obserwatorów.
+ */
     @Override
     public void notifyObservers(String message) {
         for (Observer observer : observers) {
             observer.update(message);
         }
     }
-
+/**
+ * Metoda broadcastMessage wysyła wiadomość do wszystkich obserwatorów.
+ * @param message Wiadomość do wysłania.
+ */
     public void broadcastMessage(String message) {
         notifyObservers(message);
     }
-
+/**
+ * Metoda broadcastMessage wysyła wiadomość do wszystkich obserwatorów z wyłączeniem określonego gracza.
+ * @param message Wiadomość do wysłania.
+ * @param excludePlayerId Identyfikator gracza, który ma zostać wykluczony.
+ */
     private void broadcastMessage(String message, int excludePlayerId) {
         for (Observer observer : observers) {
             if (observer instanceof ClientHandler && 
@@ -245,7 +284,9 @@ public class GameServer implements Observable{
             }
         }
     }
-
+/**
+ *  Metoda cleanupDisconnectedPlayers usuwa rozłączonych graczy.
+ */
     private void cleanupDisconnectedPlayers() {
         for (ClientHandler player : players) {
             if (!player.isConnected()) {
@@ -253,7 +294,9 @@ public class GameServer implements Observable{
             }
         }
     }
-
+/**
+ * Metoda displayStandings wyświetla ranking graczy.
+ */
     private void displayStandings() {
         System.out.println("Kolejność końcowa:");
         broadcastMessage("Gra zakończona! Kolejność końcowa: ");
@@ -267,7 +310,10 @@ public class GameServer implements Observable{
             broadcastMessage("Gracz " + playerId + " rozłączył się przed zakończeniem gry");
         }
     }
-
+/**
+ * Metoda handleNewConnections obsługuje nowe połączenia.
+ * @param serverSocket Gniazdo serwera.
+ */
     private void handleNewConnections(ServerSocket serverSocket) {
         while (true) {
             try {
@@ -297,24 +343,47 @@ public class GameServer implements Observable{
             }
         }
     }
+    /**
+     * Metoda broadcastGameState wysyła stan gry do wszystkich graczy.
+     */
     public synchronized void broadcastGameState() {
         for (ClientHandler client : players) {
             client.sendGameState(board);
         }
     }
+    /**
+     * Metoda updateGameState aktualizuje stan gry.
+     * @param move Ruch gracza.
+     */
     public synchronized void updateGameState(String move) {
         board.update(move);
         broadcastGameState();
     }
+    /**
+     * Metoda getPlayers zwraca listę graczy.
+     * @return players - lista graczy.
+     */
     public List<Observer> getObservers() {
         return observers;
     }
+    /**
+     * Metoda isRunning sprawdza, czy serwer jest uruchomiony.
+     * @return true, jeśli serwer jest uruchomiony, w przeciwnym razie false.
+     */
     public boolean isRunning() {
         return running;
     }
+    /**
+     * Metoda getDisconnectedPlayers zwraca rozłączonych graczy.
+     * @return disconnectedPlayers - rozłączeni gracze.
+     */
     public Set<Integer> getDisconnectedPlayers() {
         return disconnectedPlayers;
     }
+    /**
+     * Metoda main uruchamia serwer gry.
+     * @param args Argumenty wywołania programu.
+     */
     public static void main(String[] args) {
         ServerGUI gui = new ServerGUI();
         GameServer server = new GameServer(12345, gui);

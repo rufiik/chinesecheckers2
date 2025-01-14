@@ -5,7 +5,11 @@ import javax.swing.SwingUtilities;
 
 import chinesecheckers.patterns.GameFacade;
 import chinesecheckers.server.Board;
-
+/**
+ * Klasa GameClient reprezentuje klienta gry w chińskie warcaby.
+ * Obsługuje komunikację z serwerem oraz interfejs graficzny.
+ * Klasa ta jest odpowiedzialna za uruchomienie klienta gry.
+ */
 public class GameClient {
     private final String host;
     private final int port;
@@ -17,12 +21,18 @@ public class GameClient {
     private PrintWriter out;
     private int maxPlayers;
     private String variant;
-
+/**
+ * Konstruktor klasy GameClient.
+ * @param host Adres IP serwera.
+ * @param port Numer portu serwera.
+ */
     public GameClient(String host, int port) {
         this.host = host;
         this.port = port;
     }
-
+/**
+ * Metoda start rozpoczyna połączenie z serwerem.
+ */
     public void start() {
         try (Socket socket = new Socket(host, port);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
@@ -101,53 +111,86 @@ public class GameClient {
             System.exit(1);
         }
     }
-
+/**
+ * Metoda stopConnection zatrzymuje połączenie z serwerem.
+ */
     public void stopConnection() {
         if (isConnected) {
             isConnected = false;
             System.out.println("Rozłączono z serwerem.");
         }
     }
-
+/**
+ * Metoda closeConnection zamyka połączenie z serwerem.
+ */
     public void closeConnection() {
         if (isConnected) {
             isConnected = false;
             System.out.println("Gra już się rozpoczęła.");
         }
     }
-
+/**
+ * Metoda sendMove wysyła ruch gracza do serwera.
+ * @param startX - współrzędna x początku ruchu  
+ * @param startY - współrzędna y początku ruchu
+ * @param endX - współrzędna x końca ruchu
+ * @param endY - współrzędna y końca ruchu
+ */
     public void sendMove(int startX, int startY, int endX, int endY) {
         out.println("Ruch-" + startX + "," + startY + ":" + endX + "," + endY);
         SwingUtilities.invokeLater(() -> {
             gameFacade.endPlayerTurn();
         });
     }
-
+/**
+ * Metoda skipTurn pomija turę gracza.
+ */
     public void skipTurn() {
         out.println("SKIP TURN");
         SwingUtilities.invokeLater(() -> {
             gameFacade.endPlayerTurn();
         });
     }
-
+/**
+ * Metoda getPlayerTurn zwraca informację o turze gracza.
+ * @return true, jeśli jest tura gracza, w przeciwnym razie false.
+ */
     public boolean getPlayerTurn(){
         return isPlayerTurn;
     }
-
+/**
+ * Metoda setFacade ustawia fasadę gry.
+ * @return fasada gry
+ */
     public GameFacade setFacade(){
        this.gameFacade = new GameFacade(board, new ClientGUI(board, playerColor, this), this);
        return this.gameFacade;
     }
+    /**
+     * Metoda getVariant zwraca wariant gry.
+     * @return wariant gry
+     */
     public String getVariant() {
         return variant;
     }
+    /**
+     * Metoda setVariant ustawia wariant gry.
+     * @param variant wariant gry
+     */
     public void setVariant(String variant) {
         this.variant = variant;
     }
+    /**
+     * Metoda getMaxPlayers zwraca maksymalną liczbę graczy.
+     * @return maksymalna liczba graczy
+     */
     public int getMaxPlayers(){
         return maxPlayers;
     }   
-
+/**
+ * Metoda main uruchamia klienta gry.
+ * @param args Argumenty wywołania programu.
+ */
     public static void main(String[] args) {
         GameClient client = new GameClient("localhost", 12345);
         client.start();

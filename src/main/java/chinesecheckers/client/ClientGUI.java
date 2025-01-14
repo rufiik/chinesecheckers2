@@ -7,25 +7,62 @@ import java.util.List;
 import java.util.ArrayList;
 
 import chinesecheckers.server.Board;
-
+/**
+ * Klasa ClientGUI reprezentuje interfejs graficzny klienta gry w chińskie warcaby.
+ * Obsługuje wyświetlanie planszy, informacji o turze gracza oraz rankingów.
+ */
 public class ClientGUI extends JFrame {
+    /**
+     * Plansza do gry.
+     */
     private Board board;
+    /**
+     * Etykieta informująca o turze gracza.
+     */
     private JLabel turnLabel;
+    /**
+     * Etykieta informująca o kolorze gracza.
+     */
     private JLabel colorLabel;
+    /**
+     * Kolor pionków gracza.
+     */
     private int playerColor;
+    /**
+     * Panel planszy.
+     */
     private BoardPanel boardPanel;
+    /**
+     * Klient gry.
+     */
     private GameClient gameClient;
+    /**
+     * Przycisk pomijania tury.
+     */
     private JButton skipButton;
+    /**
+     * Obszar tekstowy z rankingiem graczy.
+     */
     private JTextArea standingsArea;
+    /**
+     * Lista rankingów graczy.
+     */
     private List<String> standings;
-
+/**
+ * Konstruktor klasy ClientGUI.
+ * @param board Instancja klasy Board reprezentująca planszę do gry.
+ * @param playerColor Kolor pionków gracza.
+ * @param gameClient Instancja klasy GameClient obsługująca komunikację z serwerem.
+ */
     public ClientGUI(Board board, int playerColor, GameClient gameClient) {
         this.board = board;
         this.playerColor = playerColor;
         this.gameClient = gameClient;
         this.standings = new ArrayList<>();
     }
-
+/**
+ * Metoda initialize inicjalizuje interfejs graficzny klienta gry.
+ */
     public void initialize() {
         setTitle("Chinese Checkers");
         setSize(1000, 800);
@@ -74,29 +111,41 @@ public class ClientGUI extends JFrame {
         add(mainPanel);
         setVisible(true);        
     }
-
+/**
+ * Metoda showPlayerTurnMessage wyświetla informację o turze gracza.
+ */
     public void showPlayerTurnMessage() {
         turnLabel.setText("Twoja tura!");
         boardPanel.setPlayerTurn(true);
         skipButton.setEnabled(true);
     }
-
+/**
+ *  Metoda endPlayerTurn kończy turę gracza.
+ */
     public void endPlayerTurn() {
         turnLabel.setText("Oczekiwanie na turę...");
         boardPanel.setPlayerTurn(false);
         skipButton.setEnabled(false);
     }
-
+/**
+ * Metoda endGame kończy grę.
+ */
     public void endGame() {
         turnLabel.setText("Koniec gry!");
         boardPanel.setPlayerTurn(false);
         skipButton.setEnabled(false);
     }
-
+/**
+ *  Metoda skipTurn pomija turę gracza. 
+ */  
     private void skipTurn() {
         gameClient.skipTurn();
     }
-
+/**
+ * Metoda getColorName zwraca nazwę koloru gracza.
+ * @param playerColor Kolor gracza.
+ * @return Nazwa koloru gracza.
+ */
     private String getColorName(int playerColor) {
         switch (playerColor) {
             case 1: return "Czerwony";
@@ -108,7 +157,11 @@ public class ClientGUI extends JFrame {
             default: return "Nieznany";
         }
     }
-
+/**
+ * Metoda updateStandings aktualizuje ranking graczy.
+ * @param rankMessage Wiadomość z rankingiem graczy.
+ * @throws NumberFormatException Jeśli nie udało się przekonwertować numeru gracza na liczbę.
+ */
     public void updateStandings(String rankMessage) {
         String[] rankParts = rankMessage.split(" ");
         int playerId = Integer.parseInt(rankParts[1]);

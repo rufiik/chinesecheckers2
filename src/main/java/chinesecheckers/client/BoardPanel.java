@@ -6,25 +6,87 @@ import java.awt.event.*;
 import java.util.Set;
 
 import chinesecheckers.server.Board;
-
+/**
+ * Klasa BoardPanel reprezentuje panel graficzny, na którym rysowana jest plansza do gry w chińskie warcaby.
+ * Obsługuje również interakcje użytkownika, takie jak wybieranie i przeciąganie pionków.
+ */
 public class BoardPanel extends JPanel {
+      /**
+     * Plansza do gry.
+     */
     private Board board;
+
+    /**
+     * Kolor pionków gracza.
+     */
     private int playerColor;
+
+    /**
+     * Czy jest tura gracza.
+     */
     private boolean isPlayerTurn = false;
+
+    /**
+     * Klient gry.
+     */
     private GameClient gameClient;
 
+    /**
+     * Rozmiar komórki planszy.
+     */
     private int cellSize = 30;
+
+    /**
+     * Szerokość planszy.
+     */
     private int boardWidth;
+
+    /**
+     * Wysokość planszy.
+     */
     private int boardHeight;
+
+    /**
+     * Współrzędna X początku planszy.
+     */
     private int startX;
+
+    /**
+     * Współrzędna Y początku planszy.
+     */
     private int startY;
 
+    /**
+     * Wiersz wybranego pionka.
+     */
     private int selectedRow = -1;
-    private int selectedCol = -1;
-    private int draggedX = -1;
-    private int draggedY = -1;
-    private boolean dragging = false;
 
+    /**
+     * Kolumna wybranego pionka.
+     */
+    private int selectedCol = -1;
+
+    /**
+     * Współrzędna X przeciąganego pionka.
+     */
+    private int draggedX = -1;
+
+    /**
+     * Współrzędna Y przeciąganego pionka.
+     */
+    private int draggedY = -1;
+
+    /**
+     * Czy pionek jest przeciągany.
+     */
+    private boolean dragging = false;
+   /**
+     * Konstruktor klasy BoardPanel.
+     *
+     * @param board       Instancja klasy Board reprezentująca planszę do gry.
+     * @param playerColor Kolor pionków gracza.
+     * @param gameClient  Instancja klasy GameClient obsługująca komunikację z serwerem.
+     */
     public BoardPanel(Board board, int playerColor, GameClient gameClient) {
         this.board = board;
         this.playerColor = playerColor;
@@ -86,14 +148,22 @@ public class BoardPanel extends JPanel {
             }
         });
     }
-
+/**
+ * Oblicza wymiary planszy na podstawie rozmiaru komórki i rozmiaru planszy.
+ */
     private void calculateBoardDimensions() {
         boardWidth = board.getBoard()[0].length * cellSize;
         boardHeight = board.getBoard().length * cellSize;
         startX = (getWidth() - boardWidth) / 2;
         startY = (getHeight() - boardHeight) / 2;
     }
-
+   /**
+     * Sprawdza, czy podane współrzędne znajdują się w obrębie planszy.
+     *
+     * @param row Wiersz na planszy.
+     * @param col Kolumna na planszy.
+     * @return true, jeśli współrzędne znajdują się w obrębie planszy, w przeciwnym razie false.
+     */
     private boolean isWithinBoard(int row, int col) {
         return row >= 0 && row < board.getBoard().length && col >= 0 && col < board.getBoard()[row].length;
     }
@@ -109,7 +179,10 @@ public class BoardPanel extends JPanel {
             g.fillOval(draggedX - cellSize / 2, draggedY - cellSize / 2, cellSize, cellSize);
         }
     }
-
+   /**
+     * Rysuje planszę do gry i pionki na niej.
+     * @param g Obiekt Graphics używany do rysowania.
+     */
     private void drawBoard(Graphics g) {
         for (int i = 0; i < board.getBoard().length; i++) {
             for (int j = 0; j < board.getBoard()[i].length; j++) {
@@ -143,6 +216,11 @@ public class BoardPanel extends JPanel {
         }
     }
 
+    /**
+     * Zwraca kolor pionka na podstawie jego numeru.
+     * @param pieceColor Numer koloru pionka.
+     * @return Kolor pionka.
+     */
     private Color getPieceColor(int pieceColor) {
         switch (pieceColor) {
             case 1:
@@ -161,11 +239,21 @@ public class BoardPanel extends JPanel {
                 return Color.WHITE;
         }
     }
-
+    /**
+     * Ustawia, czy jest tura gracza.
+     * @param isPlayerTurn true, jeśli jest tura gracza, w przeciwnym razie false.
+     */
     public void setPlayerTurn(boolean isPlayerTurn) {
         this.isPlayerTurn = isPlayerTurn;
     }
-
+   /**
+     * Powiadamia serwer o wykonanym ruchu.
+     *
+     * @param startX Początkowa współrzędna X.
+     * @param startY Początkowa współrzędna Y.
+     * @param endX   Końcowa współrzędna X.
+     * @param endY   Końcowa współrzędna Y.
+     */
     private void notifyMove(int startX, int startY, int endX, int endY) {
         gameClient.sendMove(startX, startY, endX, endY);
     }

@@ -7,13 +7,17 @@ import java.nio.charset.StandardCharsets;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-
+/**
+ * Klasa ServerGUI reprezentuje interfejs graficzny serwera gry w chińskie warcaby.
+ */
 public class ServerGUI {
     private int selectedPlayers;
     private String selectedVariant;
     private final JFrame frame;
     private final JTextArea logArea;
-
+/**
+ * Konstruktor klasy ServerGUI.
+ */
     public ServerGUI() {
         frame = new JFrame("Chińskie warcaby - serwer");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,7 +72,10 @@ public class ServerGUI {
             }
         }
     }
-
+/**
+ * Metoda createVariantPanel tworzy panel wyboru wariantu gry.
+ * @return variantPanel - panel wybranego wariantu gry
+ */
     private JPanel createVariantPanel() {
         JPanel variantPanel = new JPanel(new BorderLayout(10, 10));
         JLabel label = new JLabel("Wybierz wariant gry:", SwingConstants.CENTER);
@@ -91,7 +98,10 @@ public class ServerGUI {
         variantPanel.add(buttonPanel, BorderLayout.CENTER);
         return variantPanel;
     }
-
+/**
+ * Metoda createPlayerSelectionPanel tworzy panel wyboru liczby graczy.
+ * @return playerSelectionPanel - panel wybranej liczby graczy
+ */
     private JPanel createPlayerSelectionPanel() {
         JPanel playerSelectionPanel = new JPanel(new BorderLayout(10, 10));
         JLabel label = new JLabel("Wybierz liczbę graczy:", SwingConstants.CENTER);
@@ -116,7 +126,10 @@ public class ServerGUI {
         playerSelectionPanel.add(buttonPanel, BorderLayout.CENTER);
         return playerSelectionPanel;
     }
-
+/**
+ * Metoda getSelectedPlayers zwraca wybraną liczbę graczy.
+ * @return selectedPlayers - wybrana liczba graczy
+ */
     public synchronized int getSelectedPlayers() {
         try {
             this.wait();
@@ -125,7 +138,10 @@ public class ServerGUI {
         }
         return selectedPlayers;
     }
-
+/**
+ * Metoda getSelectedVariant zwraca wybrany wariant gry.
+ * @return selectedVariant - wybrany wariant gry
+ */
     public synchronized String getSelectedVariant() {
         try {
             this.wait();
@@ -134,7 +150,9 @@ public class ServerGUI {
         }
         return selectedVariant;
     }
-
+/**
+ * Metoda waitForWindowClose oczekuje na zamknięcie okna.
+ */
     public void waitForWindowClose() {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -154,7 +172,9 @@ public class ServerGUI {
             }
         }
     }
-
+/**
+ * Klasa CustomOutputStream reprezentuje niestandardowy strumień wyjściowy.
+ */
     class CustomOutputStream extends OutputStream {
         private final JTextArea textArea;
 
